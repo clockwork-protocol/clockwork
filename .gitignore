@@ -25,3 +25,4 @@ config/development/*.sol.js
 config/test/contracts.json
 build
 dist
+bin/
