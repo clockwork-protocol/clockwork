@@ -1,4 +1,5 @@
 const MonthlySubscription = artifacts.require("MonthlySubscription");
+const Payment = artifacts.require("Payment");
 const helper = require("./helpers/truffleTestHelper");
 
 contract("Subscription", accounts => {
@@ -11,18 +12,50 @@ contract("Subscription", accounts => {
         await helper.revertToSnapShot(snapshotId);
     });
 
-    it("should be due if next payment date is in the past and payment has not been made", async () => {    
+    it("should be due if last payment has not been made", async () => {    
         var today = new Date();
-        let subscription = await MonthlySubscription.new(today.getFullYear(),today.getMonth()+1,today.getDate()+1);
+        let owner = accounts[1];
+        let serviceProvider = accounts[2];
+
+        let subscription = await MonthlySubscription.new(today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
  
         let isDue = await subscription.isDue();
-        assert.equal(isDue, false, "Subscription is not due until T+1 day");
+        assert.equal(
+            isDue, 
+            false, 
+            "Subscription is not due until T+1 day");
 
         const newBlock = await helper.advanceTimeAndBlock(helper.daysToSeconds(2));
         
         isDue = await subscription.isDue();
-        assert.equal(isDue, true, "Subscription should be due");
+        assert.equal(
+            isDue, 
+            true, 
+            "Subscription should be due");
     });
+
+    it("should set owner and service provider correctly", async () => {
+        var today = new Date();
+        let owner = accounts[1];
+        let serviceProvider = accounts[2];
+        let subscription = await MonthlySubscription.new(today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
+
+        let subscriptionOwner = await subscription.owner();
+        assert.equal(
+            subscriptionOwner, 
+            owner, 
+            "Owner should be set correctly");
+
+        let subscriptionServiceProvider = await subscription.serviceProvider();
+        assert.equal(
+            subscriptionServiceProvider, 
+            serviceProvider, 
+            "Service provider should be set correctly");
+
+    });
+
+    // it("should return a new payment if it's due", async () => {
+    // });
 
     // it("should be overdue due if next payment date is moe than paymentLeeway days in the past and payment has not been made", async () => {
     //     assert.equal(true,false, "Not yet implimented");

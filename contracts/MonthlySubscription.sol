@@ -2,18 +2,21 @@ pragma solidity ^0.5.0;
 import "contracts/Payment.sol";
 import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 
+//TODO ::
+//Set service provider
+//
 contract MonthlySubscription {
-    address private owner;
-    address private source;
-    address private destination;
     uint public nextPaymentDate;
-    uint private paymentLeeway;
-    uint private amount = 0;
+    address public owner;
+    address payable public serviceProvider;
+
     Payment[] payments;
 
-    constructor(uint firstPaymentYear, uint firstPaymentMonth, uint firstPaymentDay) public {
+    constructor(uint firstPaymentYear, uint firstPaymentMonth, uint firstPaymentDay, address _owner, address payable _serviceProvider) public {
         require(BokkyPooBahsDateTimeLibrary.isValidDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay), "Invalid first payment date");
         nextPaymentDate = BokkyPooBahsDateTimeLibrary.timestampFromDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay);
+        owner = _owner;
+        serviceProvider = _serviceProvider;
     }
 
     function isDue() public view returns(bool) {
@@ -24,8 +27,9 @@ contract MonthlySubscription {
         //is overdue when now > nextPaymentDate + paymentLeeway and duePayment.IsPaid = false
     }
 
-    function getDuePayment() public returns(Payment) {
-        //if isDue and duePayment.IsPaid create a new payment that is funded by owner
-        //return new Payment(this);
+    function createPayment() public returns(Payment) {
+        require(isDue(), "Subscription must be due to create a payment");
+        //todo fund the payment
+        return new Payment(serviceProvider);
     }
 }
