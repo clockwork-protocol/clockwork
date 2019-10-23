@@ -4,6 +4,10 @@ const helper = require("./helpers/truffleTestHelper");
 const truffleAssert = require('truffle-assertions');
 
 contract("PaymentSchedule", accounts => {
+    var today = new Date();
+    let owner = accounts[1];
+    let destination = accounts[2];
+
     beforeEach(async() => {
         snapShot = await helper.takeSnapshot();
         snapshotId = snapShot['result'];
@@ -14,9 +18,6 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should be due if last payment has not been made", async () => {    
-        var today = new Date();
-        let owner = accounts[1];
-        let destination = accounts[2];
         let monthlyPayment = 10000000;
 
         let paymentSchedule = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, destination);
@@ -37,9 +38,6 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should set constructor parameters correctly", async () => {
-        var today = new Date();
-        let owner = accounts[1];
-        let destination = accounts[2];
         let monthlyPayment = 10000000;
 
         let paymentSchedule = await PaymentSchedule.new(monthlyPayment,today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, destination);
@@ -59,9 +57,6 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should not create a new payment if it isn't due", async () => {
-        var today = new Date();
-        let owner = accounts[1];
-        let destination = accounts[2];
         let monthlyPayment = 10000000;
 
         let paymentSchedule = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, destination);
@@ -79,9 +74,6 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should return a new payment if it's due", async () => {
-        var today = new Date();
-        let owner = accounts[1];
-        let destination = accounts[2];
         let monthlyPayment = 10000000;
 
         let paymentSchedule = await PaymentSchedule.new(
