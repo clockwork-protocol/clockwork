@@ -1,8 +1,8 @@
-const MonthlySubscription = artifacts.require("MonthlySubscription");
+const PaymentSchedule = artifacts.require("PaymentSchedule");
 const Payment = artifacts.require("Payment");
 const helper = require("./helpers/truffleTestHelper");
 
-contract("Subscription", accounts => {
+contract("PaymentSchedule", accounts => {
     beforeEach(async() => {
         snapShot = await helper.takeSnapshot();
         snapshotId = snapShot['result'];
@@ -18,7 +18,7 @@ contract("Subscription", accounts => {
         let serviceProvider = accounts[2];
         let monthlyPayment = 10000000;
 
-        let subscription = await MonthlySubscription.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
+        let subscription = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
  
         let isDue = await subscription.isDue();
         assert.equal(
@@ -41,7 +41,7 @@ contract("Subscription", accounts => {
         let serviceProvider = accounts[2];
         let monthlyPayment = 10000000;
 
-        let subscription = await MonthlySubscription.new(monthlyPayment,today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
+        let subscription = await PaymentSchedule.new(monthlyPayment,today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
 
         let subscriptionOwner = await subscription.owner();
         assert.equal(
@@ -63,7 +63,7 @@ contract("Subscription", accounts => {
         let serviceProvider = accounts[2];
         let monthlyPayment = 10000000;
 
-        let subscription = await MonthlySubscription.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()-1, owner, serviceProvider);
+        let subscription = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()-1, owner, serviceProvider);
         //check that the subscription is due
         isDue = await subscription.isDue();
         assert.equal(

@@ -5,7 +5,7 @@ import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 //TODO ::
 //Set service provider
 //
-contract MonthlySubscription {
+contract PaymentSchedule {
     uint public nextPaymentDate;
     address public owner;
     address payable public serviceProvider;
