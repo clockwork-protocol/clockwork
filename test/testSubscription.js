@@ -16,8 +16,9 @@ contract("Subscription", accounts => {
         var today = new Date();
         let owner = accounts[1];
         let serviceProvider = accounts[2];
+        let monthlyPayment = 10000000;
 
-        let subscription = await MonthlySubscription.new(today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
+        let subscription = await MonthlySubscription.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
  
         let isDue = await subscription.isDue();
         assert.equal(
@@ -34,11 +35,13 @@ contract("Subscription", accounts => {
             "Subscription should be due");
     });
 
-    it("should set owner and service provider correctly", async () => {
+    it("should set constructor parameters correctly", async () => {
         var today = new Date();
         let owner = accounts[1];
         let serviceProvider = accounts[2];
-        let subscription = await MonthlySubscription.new(today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
+        let monthlyPayment = 10000000;
+
+        let subscription = await MonthlySubscription.new(monthlyPayment,today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
 
         let subscriptionOwner = await subscription.owner();
         assert.equal(
@@ -54,8 +57,29 @@ contract("Subscription", accounts => {
 
     });
 
-    // it("should return a new payment if it's due", async () => {
-    // });
+    it("should return a new payment if it's due", async () => {
+        var today = new Date();
+        let owner = accounts[1];
+        let serviceProvider = accounts[2];
+        let monthlyPayment = 10000000;
+
+        let subscription = await MonthlySubscription.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()-1, owner, serviceProvider);
+        //check that the subscription is due
+        isDue = await subscription.isDue();
+        assert.equal(
+            isDue, 
+            true, 
+            "Subscription should be due");
+            
+        //Check that the pyment is not paid
+        let payment = await subscription.createPayment();
+        let isPaid = await newPayment.isPaid();
+        assert.equal(
+            isPaid, 
+            false, 
+            "The new payment should be marked as unpaid."
+        );
+    });
 
     // it("should be overdue due if next payment date is moe than paymentLeeway days in the past and payment has not been made", async () => {
     //     assert.equal(true,false, "Not yet implimented");

@@ -8,7 +8,7 @@ contract TestSubscription {
 
     function testSetNextPaymentDateOnCreation() public {
         address payable serviceProvider = address(uint160(address(this)));
-        MonthlySubscription sub = new MonthlySubscription(1990, 5, 13, address(this), serviceProvider);
+        MonthlySubscription sub = new MonthlySubscription(1000, 1990, 5, 13, address(this), serviceProvider);
 
         Assert.equal(BokkyPooBahsDateTimeLibrary.getYear(sub.nextPaymentDate()), 1990, "Nextpayment year should be set correctly");
         Assert.equal(BokkyPooBahsDateTimeLibrary.getMonth(sub.nextPaymentDate()), 5, "Nextpayment Month should be set correctly");
