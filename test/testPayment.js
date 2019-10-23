@@ -10,7 +10,7 @@ contract("Payment", accounts => {
         let destinationInitialBalance = await web3.eth.getBalance(destination);
         
         //create a new payment
-        let newPayment = await Payment.new(destination, {value: payment*1, from: source});
+        let newPayment = await Payment.new(destination, {value: payment, from: source});
         let isPaid = await newPayment.isPaid.call();
         assert.equal(
             isPaid, 

@@ -3,12 +3,12 @@ import "contracts/Payment.sol";
 import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 
 //TODO ::
-//Set service provider
+// remove payable from constructor
 //
 contract PaymentSchedule {
     uint public nextPaymentDate;
     address public owner;
-    address payable public serviceProvider;
+    address payable public destination;
     uint public subscriptionAmmount = 0;
     Payment public currentPayment;
 
@@ -17,11 +17,11 @@ contract PaymentSchedule {
                 uint firstPaymentMonth,
                 uint firstPaymentDay,
                 address _owner,
-                address payable _serviceProvider) public {
+                address payable _destination) public payable {
         require(BokkyPooBahsDateTimeLibrary.isValidDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay), "Invalid first payment date");
         nextPaymentDate = BokkyPooBahsDateTimeLibrary.timestampFromDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay);
         owner = _owner;
-        serviceProvider = _serviceProvider;
+        destination = _destination;
         subscriptionAmmount = _subscriptionAmmount;
     }
 
@@ -33,9 +33,9 @@ contract PaymentSchedule {
         //is overdue when now > nextPaymentDate + paymentLeeway and duePayment.IsPaid = false
     }
 
-    function createPayment() public returns(Payment) {
-        require(isDue(), "Subscription must be due to create a payment");
-        //todo fund the payment
-        return (new Payment).value(subscriptionAmmount)(serviceProvider);
+    function createPayment() public {
+        require(isDue(), "PaymentSchedule must be due to create a payment");
+        //todo fund the payment from funding contract
+        currentPayment = (new Payment).value(subscriptionAmmount)(destination);
     }
 }
