@@ -1,6 +1,7 @@
 const PaymentSchedule = artifacts.require("PaymentSchedule");
 const Payment = artifacts.require("Payment");
 const helper = require("./helpers/truffleTestHelper");
+const truffleAssert = require('truffle-assertions');
 
 contract("PaymentSchedule", accounts => {
     beforeEach(async() => {
@@ -57,29 +58,49 @@ contract("PaymentSchedule", accounts => {
 
     });
 
-    it("should return a new payment if it's due", async () => {
+    it("should not create a new payment if it isn't due", async () => {
         var today = new Date();
         let owner = accounts[1];
         let serviceProvider = accounts[2];
         let monthlyPayment = 10000000;
 
-        let subscription = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()-1, owner, serviceProvider);
+        let subscription = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, serviceProvider);
         //check that the subscription is due
         isDue = await subscription.isDue();
         assert.equal(
             isDue, 
-            true, 
-            "Subscription should be due");
-            
-        //Check that the pyment is not paid
-        let payment = await subscription.createPayment();
-        let isPaid = await newPayment.isPaid();
-        assert.equal(
-            isPaid, 
             false, 
-            "The new payment should be marked as unpaid."
+            "Subscription should not be due");
+            
+        await truffleAssert.reverts(
+            subscription.createPayment(),
+            "Subscription must be due to create a payment"
         );
     });
+
+    // it("should return a new payment if it's due", async () => {
+    //     var today = new Date();
+    //     let owner = accounts[1];
+    //     let serviceProvider = accounts[2];
+    //     let monthlyPayment = 10000000;
+
+    //     let subscription = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()-1, owner, serviceProvider);
+    //     //check that the subscription is due
+    //     isDue = await subscription.isDue();
+    //     assert.equal(
+    //         isDue, 
+    //         true, 
+    //         "Subscription should be due");
+            
+    //     //Check that the pyment is not paid
+    //     let newPayment = await subscription.createPayment();
+    //     // let isPaid = await newPayment.isPaid();
+    //     // assert.equal(
+    //     //     isPaid, 
+    //     //     false, 
+    //     //     "The new payment should be marked as unpaid."
+    //     // );
+    // });
 
     // it("should be overdue due if next payment date is moe than paymentLeeway days in the past and payment has not been made", async () => {
     //     assert.equal(true,false, "Not yet implimented");
