@@ -101,7 +101,45 @@ contract("Payment", accounts => {
         );
     });
 
-    // it("should be funded if the contract balance equals or exceeds the payment ammount", async () => {});
+    it("should only be funded if the contract balance equals or exceeds the payment ammount", async () => {
+        let fundAmount = payment - 100;     
+        //create a new payment but fund it with less than is required
+        let newPayment = await Payment.new(destination, payment, {value: fundAmount, from: source});
+        //check that it is not funded
+        isFunded = await newPayment.isFunded.call();
+        assert.equal(
+            isFunded, 
+            false, 
+            "Payment should not be funded if contract balance is less than payment ammount."
+        );
+
+        newPayment = await Payment.new(destination, payment);
+        //check that it is not funded
+        isFunded = await newPayment.isFunded.call();
+        assert.equal(
+            isFunded, 
+            false, 
+            "Payment should not be funded if contract balance is zero."
+        );
+
+        newPayment = await Payment.new(destination, payment, {value: payment, from: source});
+        //check that it is funded
+        isFunded = await newPayment.isFunded.call();
+        assert.equal(
+            isFunded, 
+            true, 
+            "Payment should be funded if contract balance equals the payment ammount."
+        );
+
+        newPayment = await Payment.new(destination, payment, {value: payment+100, from: source});
+        //check that it is funded
+        isFunded = await newPayment.isFunded.call();
+        assert.equal(
+            isFunded, 
+            true, 
+            "Payment should be funded if contract balance exceeds the payment ammount."
+        );
+    });
 
     // it("should only pay the correct ammount and return the excess to the funding contract", async () => {});
 });
