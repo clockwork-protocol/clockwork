@@ -4,7 +4,10 @@ import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 
 //TODO ::
 // remove payable from constructor
-//
+// fund the payment from funding contract
+//  - Dont create new payments if not enough funds in funding contract
+// Keep list of all payments
+// change current payment to getDuePayments
 contract PaymentSchedule {
     uint public nextPaymentDate;
     address public owner;
@@ -25,7 +28,7 @@ contract PaymentSchedule {
         subscriptionAmmount = _subscriptionAmmount;
     }
 
-    function isDue() public view returns(bool) {
+    function isNextPaymentDue() public view returns(bool) {
         return block.timestamp > nextPaymentDate;
     }
 
@@ -33,9 +36,10 @@ contract PaymentSchedule {
         //is overdue when now > nextPaymentDate + paymentLeeway and duePayment.IsPaid = false
     }
 
-    function createPayment() public {
-        require(isDue(), "PaymentSchedule must be due to create a payment");
+    function createNextPayment() public {
+        require(isNextPaymentDue(), "PaymentSchedule must be due to create a payment");
         //todo fund the payment from funding contract
-        currentPayment = (new Payment).value(subscriptionAmmount)(destination);
+        //don't create payment if not enough funds
+        currentPayment = (new Payment).value(subscriptionAmmount)(destination, subscriptionAmmount);
     }
 }
