@@ -6,14 +6,13 @@ import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 // remove payable from constructor
 // fund the payment from funding contract
 //  - Dont create new payments if not enough funds in funding contract
-// Keep list of all payments
-// change current payment to getDuePayments
+// add getDuePayments
 contract PaymentSchedule {
     uint public nextPaymentDate;
     address public owner;
     address payable public destination;
     uint public subscriptionAmmount = 0;
-    Payment public currentPayment;
+    Payment[] public payments;
 
     constructor(uint _subscriptionAmmount,
                 uint firstPaymentYear,
@@ -32,6 +31,11 @@ contract PaymentSchedule {
         return block.timestamp > nextPaymentDate;
     }
 
+    function latestPayment() public view returns(Payment) {
+        require(payments.length > 0, "No payments created yet");
+        return payments[payments.length-1];
+    }
+
     function isOverDue() public returns(bool) {
         //is overdue when now > nextPaymentDate + paymentLeeway and duePayment.IsPaid = false
     }
@@ -40,6 +44,6 @@ contract PaymentSchedule {
         require(isNextPaymentDue(), "PaymentSchedule must be due to create a payment");
         //todo fund the payment from funding contract
         //don't create payment if not enough funds
-        currentPayment = (new Payment).value(subscriptionAmmount)(destination, subscriptionAmmount);
+        payments.push((new Payment).value(subscriptionAmmount)(destination, subscriptionAmmount));
     }
 }

@@ -94,9 +94,9 @@ contract("PaymentSchedule", accounts => {
             
         //Check that the pyment is not paid
         let result = await paymentSchedule.createNextPayment();
-        currentPaymentAddress = await paymentSchedule.currentPayment();
-        let currentPayment = await Payment.at(currentPaymentAddress);
-        let isPaid = await currentPayment.isPaid.call();
+        latestPaymentAddress = await paymentSchedule.latestPayment();
+        let latestPayment = await Payment.at(latestPaymentAddress);
+        let isPaid = await latestPayment.isPaid.call();
         assert.equal(
              isPaid, 
              false, 
@@ -104,7 +104,7 @@ contract("PaymentSchedule", accounts => {
         );
     });
 
-    // it("should only create a payment if the last payment has been made", async () => {
+    // it("should only create a payment if thelast payment has been made", async () => {
     //     assert.equal(true,false, "Not yet implimented");
     // });
 
