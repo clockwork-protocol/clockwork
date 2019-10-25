@@ -32,6 +32,7 @@ contract PaymentSchedule {
     }
 
     function isNextPaymentDue() public view returns(bool) {
+        //todo:: shouldn't this also look at latestPayment().isPaid()? Yes probably
         return block.timestamp > nextPaymentDate;
     }
 
@@ -40,8 +41,15 @@ contract PaymentSchedule {
         return payments[payments.length-1];
     }
 
-    function isOverDue() public returns(bool) {
-        //is overdue when now > nextPaymentDate + paymentLeeway and duePayment.IsPaid = false
+    function overdueDate() private view returns(uint) {
+        return BokkyPooBahsDateTimeLibrary.addDays(nextPaymentDate, paymentLeeway);
+    }
+
+    function isOverDue() public view returns(bool) {
+        bool isSubscriptionOverdue = block.timestamp > overdueDate();
+        bool atLeastOnePaymentCreated = payments.length > 0;
+        bool isLatestPaymentOverdue = atLeastOnePaymentCreated && latestPayment().isOverdue();
+        return isSubscriptionOverdue || isLatestPaymentOverdue;
     }
 
     function createNextPayment() public {
@@ -51,7 +59,7 @@ contract PaymentSchedule {
         }
         //todo fund the payment from funding contract
         //don't create payment if not enough funds
+        payments.push((new Payment).value(subscriptionAmmount)(destination, subscriptionAmmount, overdueDate()));
         nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(nextPaymentDate, 1);
-        payments.push((new Payment).value(subscriptionAmmount)(destination, subscriptionAmmount));
     }
 }

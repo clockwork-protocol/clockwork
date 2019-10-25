@@ -11,7 +11,12 @@ contract("Payment", accounts => {
         let destinationInitialBalance = await web3.eth.getBalance(destination);
         
         //create a new payment
-        let newPayment = await Payment.new(destination, payment, {value: payment, from: source});
+        let newPayment = await Payment.new(
+            destination, 
+            payment, 
+            0,
+            {value: payment, from: source});
+
         let isPaid = await newPayment.isPaid.call();
         assert.equal(
             isPaid, 
@@ -47,7 +52,12 @@ contract("Payment", accounts => {
 
     it("should set payment ammount correctly", async () => {
         //create a new payment
-        let newPayment = await Payment.new(destination, payment, {value: payment, from: source});
+        let newPayment = await Payment.new(
+            destination, 
+            payment, 
+            0,
+            {value: payment, from: source});
+
         let paymentAmount = await newPayment.paymentAmount.call();
         assert.equal(
             paymentAmount, 
@@ -59,7 +69,12 @@ contract("Payment", accounts => {
     it("should not execute if the contract doesn't have enough funds", async () => {   
         let fundAmount = payment - 100;     
         //create a new payment but fund it with less than is required
-        let newPayment = await Payment.new(destination, payment, {value: fundAmount, from: source});
+        let newPayment = await Payment.new(
+            destination, 
+            payment, 
+            0,
+            {value: fundAmount, from: source});
+
         let isPaid = await newPayment.isPaid.call();
         assert.equal(
             isPaid, 
@@ -75,7 +90,12 @@ contract("Payment", accounts => {
 
     it("should only execute once", async () => {
         //create a new payment
-        let newPayment = await Payment.new(destination, payment, {value: payment, from: source});
+        let newPayment = await Payment.new(
+            destination, 
+            payment, 
+            0,
+            {value: payment, from: source});
+
         let isPaid = await newPayment.isPaid.call();
         assert.equal(
             isPaid, 
@@ -104,7 +124,12 @@ contract("Payment", accounts => {
     it("should only be funded if the contract balance equals or exceeds the payment ammount", async () => {
         let fundAmount = payment - 100;     
         //create a new payment but fund it with less than is required
-        let newPayment = await Payment.new(destination, payment, {value: fundAmount, from: source});
+        let newPayment = await Payment.new(
+            destination, 
+            payment, 
+            0,
+            {value: fundAmount, from: source});
+
         //check that it is not funded
         isFunded = await newPayment.isFunded.call();
         assert.equal(
@@ -113,7 +138,10 @@ contract("Payment", accounts => {
             "Payment should not be funded if contract balance is less than payment ammount."
         );
 
-        newPayment = await Payment.new(destination, payment);
+        newPayment = await Payment.new(
+            destination, 
+            payment,
+            0);
         //check that it is not funded
         isFunded = await newPayment.isFunded.call();
         assert.equal(
@@ -122,7 +150,11 @@ contract("Payment", accounts => {
             "Payment should not be funded if contract balance is zero."
         );
 
-        newPayment = await Payment.new(destination, payment, {value: payment, from: source});
+        newPayment = await Payment.new(
+            destination, 
+            payment,
+            0, 
+            {value: payment, from: source});
         //check that it is funded
         isFunded = await newPayment.isFunded.call();
         assert.equal(
@@ -131,7 +163,11 @@ contract("Payment", accounts => {
             "Payment should be funded if contract balance equals the payment ammount."
         );
 
-        newPayment = await Payment.new(destination, payment, {value: payment+100, from: source});
+        newPayment = await Payment.new(
+            destination, 
+            payment, 
+            0,
+            {value: payment+100, from: source});
         //check that it is funded
         isFunded = await newPayment.isFunded.call();
         assert.equal(
@@ -140,6 +176,8 @@ contract("Payment", accounts => {
             "Payment should be funded if contract balance exceeds the payment ammount."
         );
     });
+
+    // it("should be overdue if not paid after overdue date", async () => {});
 
     // it("should only pay the correct ammount and return the excess to the funding contract", async () => {});
 });

@@ -9,7 +9,7 @@ contract("PaymentSchedule", accounts => {
     let destination = accounts[2];
     let monthlyPayment = 10000000;
 
-    //Helper function to get the latest payment froma payment schedule
+    //Helper function to get the latest payment from a payment schedule
     let getLatestPayment = async(paymentSchedule) => {
         latestPaymentAddress = await paymentSchedule.latestPayment(); //returns an address
         let latestPayment = await Payment.at(latestPaymentAddress); //get the payment at returned address
@@ -83,7 +83,7 @@ contract("PaymentSchedule", accounts => {
             today.getDate()+1, 
             owner, 
             destination);
-        //check that the paymentSchedule is due
+        //check that the paymentSchedule is not due
         isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
         assert.equal(
             isNextPaymentDue, 
@@ -127,7 +127,7 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should only create a new payment if the last payment has been made", async () => {
-        //create a due payment
+        //create a due payment schedule
         let paymentSchedule = await PaymentSchedule.new(
             monthlyPayment, 
             1,
@@ -177,9 +177,112 @@ contract("PaymentSchedule", accounts => {
             "Payment leeway must be more than or equal to one day");
     });
 
-    // it("should be overdue due if there is an outstanding payment that was due more than paymentLeeway days in the past", async () => {
-    //     assert.equal(true,false, "Not yet implimented");
-    // });
+    it("should be overdue due if next due date is more than paymentLeeway days in the past", async () => {
+        //create a payment schedule
+        let paymentSchedule = await PaymentSchedule.new(
+            monthlyPayment, 
+            2,
+            today.getFullYear(),
+            today.getMonth()+1,
+            today.getDate()+1, 
+            owner, 
+            destination);
+
+        //subscription should not be due
+        let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        assert.equal(
+            isNextPaymentDue, 
+            false, 
+            "paymentSchedule should not be due");
+        
+        //move time forward
+        await helper.advanceTimeAndBlock(helper.daysToSeconds(2));
+
+        //subscription should be due
+        isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        assert.equal(
+            isNextPaymentDue, 
+            true, 
+            "paymentSchedule should now be due");
+
+        //subscription should not be overdue
+        let isOverdue = await paymentSchedule.isOverDue();
+        assert.equal(
+            isOverdue, 
+            false, 
+            "paymentSchedule should not be overdue");
+
+        //move time forward
+        await helper.advanceTimeAndBlock(helper.daysToSeconds(2));
+
+        //subscription should be overdue
+        isOverdue = await paymentSchedule.isOverDue();
+        assert.equal(
+            isOverdue, 
+            true, 
+            "paymentSchedule should be overdue");
+    });
+
+    it("should be overdue due if there is an outstanding payment that was due more than paymentLeeway days in the past", async () => {
+        //create a payment schedule
+        let paymentSchedule = await PaymentSchedule.new(
+            monthlyPayment, 
+            2,
+            today.getFullYear(),
+            today.getMonth()+1,
+            today.getDate()+1, 
+            owner, 
+            destination,
+            {value: monthlyPayment*2, from: destination});
+
+        //subscription should not be due
+        let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        assert.equal(
+            isNextPaymentDue, 
+            false, 
+            "paymentSchedule should not be due");
+        
+        //move time forward
+        await helper.advanceTimeAndBlock(helper.daysToSeconds(2));
+
+        //subscription should be due
+        isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        assert.equal(
+            isNextPaymentDue, 
+            true, 
+            "paymentSchedule should now be due");
+
+        //create a new payment
+        let result = await paymentSchedule.createNextPayment();
+
+        //subscription should not be overdue
+        let isOverdue = await paymentSchedule.isOverDue();
+        assert.equal(
+            isOverdue, 
+            false, 
+            "paymentSchedule should not be overdue");
+
+        //move time forward
+        await helper.advanceTimeAndBlock(helper.daysToSeconds(3));
+
+        //subscription should be overdue
+        isOverdue = await paymentSchedule.isOverDue();
+        assert.equal(
+            isOverdue, 
+            true, 
+            "paymentSchedule should be overdue");
+
+        //execute the payment
+        let latestPayment = await getLatestPayment(paymentSchedule);
+        await latestPayment.execute();
+
+        //subscription should not be overdue
+        isOverdue = await paymentSchedule.isOverDue();
+        assert.equal(
+            isOverdue, 
+            false, 
+            "paymentSchedule should not be overdue");
+    });
 
     // it("should have a list of past payments", async () => {
     //     assert.equal(true,false, "Not yet implimented");
@@ -187,11 +290,7 @@ contract("PaymentSchedule", accounts => {
 
     // it("should only have one due payment", async () => {
     //     assert.equal(true,false, "Not yet implimented");
-    // });
-
-    // it("should not be overdue once due payment has been made", async () => {
-    //     assert.equal(true,false, "Not yet implimented");
-    // });
+    // }); 
 
     // it("should only allow funding contracts as source", async () => {
         
