@@ -9,22 +9,26 @@ import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 // add getDuePayments
 contract PaymentSchedule {
     uint public nextPaymentDate;
+    uint public paymentLeeway;
     address public owner;
     address payable public destination;
     uint public subscriptionAmmount = 0;
     Payment[] public payments;
 
     constructor(uint _subscriptionAmmount,
+                uint _paymentLeeway,
                 uint firstPaymentYear,
                 uint firstPaymentMonth,
                 uint firstPaymentDay,
                 address _owner,
                 address payable _destination) public payable {
         require(BokkyPooBahsDateTimeLibrary.isValidDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay), "Invalid first payment date");
+        require(_paymentLeeway >= 1, "Payment leeway must be more than or equal to one day");
         nextPaymentDate = BokkyPooBahsDateTimeLibrary.timestampFromDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay);
         owner = _owner;
         destination = _destination;
         subscriptionAmmount = _subscriptionAmmount;
+        paymentLeeway = _paymentLeeway;
     }
 
     function isNextPaymentDue() public view returns(bool) {

@@ -26,7 +26,14 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should be due if last payment has not been made", async () => {
-        let paymentSchedule = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, destination);
+        let paymentSchedule = await PaymentSchedule.new(
+            monthlyPayment, 
+            1,
+            today.getFullYear(),
+            today.getMonth()+1,
+            today.getDate()+1,
+            owner,
+            destination);
  
         let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
         assert.equal(
@@ -44,7 +51,14 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should set constructor parameters correctly", async () => {
-        let paymentSchedule = await PaymentSchedule.new(monthlyPayment,today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, destination);
+        let paymentSchedule = await PaymentSchedule.new(
+            monthlyPayment,
+            1,
+            today.getFullYear(),
+            today.getMonth()+1,
+            today.getDate()+1, 
+            owner, 
+            destination);
 
         let paymentScheduleOwner = await paymentSchedule.owner();
         assert.equal(
@@ -61,7 +75,14 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should not create a new payment if it isn't due", async () => {
-        let paymentSchedule = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, destination);
+        let paymentSchedule = await PaymentSchedule.new(
+            monthlyPayment, 
+            1,
+            today.getFullYear(),
+            today.getMonth()+1,
+            today.getDate()+1, 
+            owner, 
+            destination);
         //check that the paymentSchedule is due
         isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
         assert.equal(
@@ -78,7 +99,8 @@ contract("PaymentSchedule", accounts => {
     it("should return a new payment if it's due", async () => {
         //create a due payment
         let paymentSchedule = await PaymentSchedule.new(
-            monthlyPayment, 
+            monthlyPayment,
+            1, 
             today.getFullYear(),
             today.getMonth()+1,
             today.getDate()-1, 
@@ -105,9 +127,10 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should only create a new payment if the last payment has been made", async () => {
-         //create a due payment
+        //create a due payment
         let paymentSchedule = await PaymentSchedule.new(
             monthlyPayment, 
+            1,
             today.getFullYear(),
             today.getMonth()+1,
             today.getDate()-1, 
@@ -141,9 +164,18 @@ contract("PaymentSchedule", accounts => {
         await paymentSchedule.createNextPayment();
     });
 
-    // it("should not allow payment leeway of less than 1 day", async () => {
-    //     assert.equal(true,false, "Not yet implimented");
-    // });
+    it("should not allow payment leeway of less than 1 day", async () => {
+        await truffleAssert.reverts(
+            PaymentSchedule.new(
+                monthlyPayment,
+                0,
+                today.getFullYear(),
+                today.getMonth()+1,
+                today.getDate()+1, 
+                owner, 
+                destination),
+            "Payment leeway must be more than or equal to one day");
+    });
 
     // it("should be overdue due if there is an outstanding payment that was due more than paymentLeeway days in the past", async () => {
     //     assert.equal(true,false, "Not yet implimented");
