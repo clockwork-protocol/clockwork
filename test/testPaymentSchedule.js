@@ -16,6 +16,13 @@ contract("PaymentSchedule", accounts => {
         return latestPayment;
     };
 
+    //Helper function to get the a payment from a payment schedule
+    let getPayment = async(paymentSchedule, position) => {
+        latestPaymentAddress = await paymentSchedule.payments(position); //returns an address
+        let latestPayment = await Payment.at(latestPaymentAddress); //get the payment at returned address
+        return latestPayment;
+    };
+
     beforeEach(async() => {
         snapShot = await helper.takeSnapshot();
         snapshotId = snapShot['result'];
@@ -284,13 +291,62 @@ contract("PaymentSchedule", accounts => {
             "paymentSchedule should not be overdue");
     });
 
-    // it("should have a list of past payments", async () => {
-    //     assert.equal(true,false, "Not yet implimented");
-    // });
+    it("should have a list of past payments", async () => {
+        //create a payment schedule
+        let paymentSchedule = await PaymentSchedule.new(
+            monthlyPayment, 
+            2,
+            today.getFullYear(),
+            today.getMonth()+1,
+            today.getDate()-1, 
+            owner, 
+            destination,
+            {value: monthlyPayment*3, from: destination});
 
-    // it("should only have one due payment", async () => {
-    //     assert.equal(true,false, "Not yet implimented");
-    // }); 
+        //create payment
+        await paymentSchedule.createNextPayment();
+
+        //there should be one payment in list
+        let paymentCount = await paymentSchedule.numberOfPayments();
+        assert.equal(
+            paymentCount, 
+            1, 
+            "There should be one payment in the list");
+
+        //execute payment
+        let payment = await getPayment(paymentSchedule, 0);
+        await payment.execute();
+
+        //move time forward
+        await helper.advanceTimeAndBlock(helper.daysToSeconds(31));
+        await paymentSchedule.createNextPayment();
+
+        //there should be 2 payment in list
+        paymentCount = await paymentSchedule.numberOfPayments();
+        assert.equal(
+            paymentCount, 
+            2, 
+            "There should be two payments in the list");
+
+        //execute payment
+        payment = await getPayment(paymentSchedule, 1);
+        await payment.execute();
+        
+        //move time forward
+        await helper.advanceTimeAndBlock(helper.daysToSeconds(31));
+        await paymentSchedule.createNextPayment();
+
+        //there should be 3 payment in list
+        paymentCount = await paymentSchedule.numberOfPayments();
+        assert.equal(
+            paymentCount, 
+            3, 
+            "There should be three payments in the list");
+
+        //execute payment
+        payment = await getPayment(paymentSchedule, 2);
+        await payment.execute();
+    });
 
     // it("should only allow funding contracts as source", async () => {
         

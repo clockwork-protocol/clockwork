@@ -41,6 +41,10 @@ contract PaymentSchedule {
         return payments[payments.length-1];
     }
 
+    function numberOfPayments() public view returns(uint) {
+        return payments.length;
+    }
+
     function overdueDate() private view returns(uint) {
         return BokkyPooBahsDateTimeLibrary.addDays(nextPaymentDate, paymentLeeway);
     }
@@ -56,6 +60,7 @@ contract PaymentSchedule {
         if (payments.length > 0) {
             require(latestPayment().isPaid(), "Can only create a new payment if last payment has been made");
         }
+        require(address(this).balance >= subscriptionAmmount, "Insufficient funds to fund payment");
         //todo fund the payment from funding contract
         //don't create payment if not enough funds
         payments.push((new Payment).value(subscriptionAmmount)(destination, subscriptionAmmount, overdueDate()));
