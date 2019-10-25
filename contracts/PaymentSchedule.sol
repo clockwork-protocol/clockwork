@@ -42,8 +42,12 @@ contract PaymentSchedule {
 
     function createNextPayment() public {
         require(isNextPaymentDue(), "PaymentSchedule must be due to create a payment");
+        if (payments.length > 0) {
+            require(latestPayment().isPaid(), "Can only create a new payment if last payment has been made");
+        }
         //todo fund the payment from funding contract
         //don't create payment if not enough funds
+        nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(nextPaymentDate, 1);
         payments.push((new Payment).value(subscriptionAmmount)(destination, subscriptionAmmount));
     }
 }

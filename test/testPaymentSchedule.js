@@ -7,6 +7,14 @@ contract("PaymentSchedule", accounts => {
     var today = new Date();
     let owner = accounts[1];
     let destination = accounts[2];
+    let monthlyPayment = 10000000;
+
+    //Helper function to get the latest payment froma payment schedule
+    let getLatestPayment = async(paymentSchedule) => {
+        latestPaymentAddress = await paymentSchedule.latestPayment(); //returns an address
+        let latestPayment = await Payment.at(latestPaymentAddress); //get the payment at returned address
+        return latestPayment;
+    };
 
     beforeEach(async() => {
         snapShot = await helper.takeSnapshot();
@@ -17,9 +25,7 @@ contract("PaymentSchedule", accounts => {
         await helper.revertToSnapShot(snapshotId);
     });
 
-    it("should be due if last payment has not been made", async () => {    
-        let monthlyPayment = 10000000;
-
+    it("should be due if last payment has not been made", async () => {
         let paymentSchedule = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, destination);
  
         let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
@@ -38,8 +44,6 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should set constructor parameters correctly", async () => {
-        let monthlyPayment = 10000000;
-
         let paymentSchedule = await PaymentSchedule.new(monthlyPayment,today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, destination);
 
         let paymentScheduleOwner = await paymentSchedule.owner();
@@ -57,8 +61,6 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should not create a new payment if it isn't due", async () => {
-        let monthlyPayment = 10000000;
-
         let paymentSchedule = await PaymentSchedule.new(monthlyPayment, today.getFullYear(),today.getMonth()+1,today.getDate()+1, owner, destination);
         //check that the paymentSchedule is due
         isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
@@ -74,8 +76,7 @@ contract("PaymentSchedule", accounts => {
     });
 
     it("should return a new payment if it's due", async () => {
-        let monthlyPayment = 10000000;
-
+        //create a due payment
         let paymentSchedule = await PaymentSchedule.new(
             monthlyPayment, 
             today.getFullYear(),
@@ -94,8 +95,7 @@ contract("PaymentSchedule", accounts => {
             
         //Check that the pyment is not paid
         let result = await paymentSchedule.createNextPayment();
-        latestPaymentAddress = await paymentSchedule.latestPayment();
-        let latestPayment = await Payment.at(latestPaymentAddress);
+        let latestPayment = await getLatestPayment(paymentSchedule);
         let isPaid = await latestPayment.isPaid.call();
         assert.equal(
              isPaid, 
@@ -104,9 +104,42 @@ contract("PaymentSchedule", accounts => {
         );
     });
 
-    // it("should only create a payment if thelast payment has been made", async () => {
-    //     assert.equal(true,false, "Not yet implimented");
-    // });
+    it("should only create a new payment if the last payment has been made", async () => {
+         //create a due payment
+        let paymentSchedule = await PaymentSchedule.new(
+            monthlyPayment, 
+            today.getFullYear(),
+            today.getMonth()+1,
+            today.getDate()-1, 
+            owner, 
+            destination,
+            {value: monthlyPayment*2, from: destination}); //creating 2 payments so need 2 payments
+        
+        //create a payment without paying it
+        await paymentSchedule.createNextPayment();
+
+        //try create a new payment, it should fail because nextDueDate has move on
+        await truffleAssert.reverts(
+            paymentSchedule.createNextPayment(),
+            "PaymentSchedule must be due to create a payment"
+        );
+        
+        //move time forward by one month
+        const newBlock = await helper.advanceTimeAndBlock(helper.daysToSeconds(31));
+
+        //create a new payment, it should fail because last payment hasn't been made yet
+        await truffleAssert.reverts(
+            paymentSchedule.createNextPayment(),
+            "Can only create a new payment if last payment has been made"
+        );
+
+        //execute the payment
+        let latestPayment = await getLatestPayment(paymentSchedule);
+        await latestPayment.execute();
+
+        //create a new payment, it should succeed
+        await paymentSchedule.createNextPayment();
+    });
 
     // it("should not allow payment leeway of less than 1 day", async () => {
     //     assert.equal(true,false, "Not yet implimented");
