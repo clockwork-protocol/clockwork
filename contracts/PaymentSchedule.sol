@@ -47,8 +47,7 @@ contract PaymentSchedule {
 
     function isOverDue() public view returns(bool) {
         bool isSubscriptionOverdue = block.timestamp > overdueDate();
-        bool atLeastOnePaymentCreated = payments.length > 0;
-        bool isLatestPaymentOverdue = atLeastOnePaymentCreated && latestPayment().isOverdue();
+        bool isLatestPaymentOverdue = payments.length > 0 && latestPayment().isOverdue();
         return isSubscriptionOverdue || isLatestPaymentOverdue;
     }
 
