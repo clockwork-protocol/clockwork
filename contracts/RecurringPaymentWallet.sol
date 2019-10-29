@@ -36,6 +36,7 @@ contract RecurringPaymentWallet {
         public
         onlyBy(owner)
     {
+        require(_amount <= address(this).balance, "Withdrawal request exceeds balance");
         msg.sender.transfer(_amount);
     }
 

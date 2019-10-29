@@ -3,6 +3,7 @@ const truffleAssert = require('truffle-assertions');
 
 contract("RecurringPaymentWallet", accounts => {
     let owner = accounts[0];
+    let hacker = accounts[1];
 
     it("should set constructor parameters correctly", async () => {
         let wallet = await RecurringPaymentWallet.new();
@@ -70,8 +71,44 @@ contract("RecurringPaymentWallet", accounts => {
             "Wallet balance is incorrect"
         );
     });
-    //should only allow the owner of a wallet to withdraw funds
-    //should not be able to withdraw more than you deposit
+
+    it("should only allow the owner of a wallet to withdraw funds", async () => {
+        let wallet = await RecurringPaymentWallet.new();
+        let depositAmmount = 100000;
+
+        await wallet.deposit({value: depositAmmount, from: owner});
+        let balance = await wallet.getBalance();
+
+        assert.equal(
+            balance, 
+            depositAmmount, 
+            "Wallet balance is incorrect"
+        );
+
+        await truffleAssert.reverts(
+            wallet.withdraw(depositAmmount/2, {from : hacker}),
+            "Sender not authorized."
+        );
+    });
+
+    it("should not be able to withdraw more than you deposit", async () => {
+        let wallet = await RecurringPaymentWallet.new();
+        let depositAmmount = 100000;
+
+        await wallet.deposit({value: depositAmmount, from: owner});
+        let balance = await wallet.getBalance();
+
+        assert.equal(
+            balance, 
+            depositAmmount, 
+            "Wallet balance is incorrect"
+        );
+
+        await truffleAssert.reverts(
+            wallet.withdraw(depositAmmount*2),
+            "Withdrawal request exceeds balance"
+        );
+    });
     //should be able to create a recurring payment
     //should only allow wallet owner to create a recurring payment
     //should be able to fund a transaction for a recurring payment
