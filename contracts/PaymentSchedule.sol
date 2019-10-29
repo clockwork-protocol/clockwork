@@ -21,9 +21,13 @@ contract PaymentSchedule {
                 uint firstPaymentMonth,
                 uint firstPaymentDay,
                 address _owner,
-                address payable _destination) public payable {
+                address payable _destination)
+        public
+        payable
+    {
         require(BokkyPooBahsDateTimeLibrary.isValidDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay), "Invalid first payment date");
         require(_paymentLeeway >= 1, "Payment leeway must be more than or equal to one day");
+        
         nextPaymentDate = BokkyPooBahsDateTimeLibrary.timestampFromDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay);
         owner = _owner;
         destination = _destination;
@@ -31,31 +35,53 @@ contract PaymentSchedule {
         paymentLeeway = _paymentLeeway;
     }
 
-    function isNextPaymentDue() public view returns(bool) {
+    function isNextPaymentDue()
+        public
+        view
+        returns(bool)
+    {
         //todo:: shouldn't this also look at latestPayment().isPaid()? Yes probably
         return block.timestamp > nextPaymentDate;
     }
 
-    function latestPayment() public view returns(Payment) {
+    function latestPayment()
+        public
+        view
+        returns(Payment)
+    {
         require(payments.length > 0, "No payments created yet");
         return payments[payments.length-1];
     }
 
-    function numberOfPayments() public view returns(uint) {
+    function numberOfPayments()
+        public
+        view
+        returns(uint)
+    {
         return payments.length;
     }
 
-    function overdueDate() private view returns(uint) {
+    function overdueDate()
+        private
+        view
+        returns(uint)
+    {
         return BokkyPooBahsDateTimeLibrary.addDays(nextPaymentDate, paymentLeeway);
     }
 
-    function isOverDue() public view returns(bool) {
+    function isOverDue()
+        public
+        view
+        returns(bool)
+    {
         bool isSubscriptionOverdue = block.timestamp > overdueDate();
         bool isLatestPaymentOverdue = payments.length > 0 && latestPayment().isOverdue();
         return isSubscriptionOverdue || isLatestPaymentOverdue;
     }
 
-    function createNextPayment() public {
+    function createNextPayment()
+        public
+    {
         require(isNextPaymentDue(), "PaymentSchedule must be due to create a payment");
         if (payments.length > 0) {
             require(latestPayment().isPaid(), "Can only create a new payment if last payment has been made");
