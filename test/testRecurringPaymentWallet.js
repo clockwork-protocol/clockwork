@@ -1,9 +1,10 @@
 const RecurringPaymentWallet = artifacts.require("RecurringPaymentWallet");
+const PaymentSchedule = artifacts.require("PaymentSchedule");
 const truffleAssert = require('truffle-assertions');
 
 contract("RecurringPaymentWallet", accounts => {
-    let owner = accounts[0];
-    let hacker = accounts[1];
+    const owner = accounts[0];
+    const hacker = accounts[1];
 
     it("should set constructor parameters correctly", async () => {
         let wallet = await RecurringPaymentWallet.new();
@@ -109,9 +110,33 @@ contract("RecurringPaymentWallet", accounts => {
             "Withdrawal request exceeds balance"
         );
     });
-    //should be able to create a recurring payment
-    //should only allow wallet owner to create a recurring payment
-    //should be able to fund a transaction for a recurring payment
+
+    it("should be able to create a payment schedule", async () => {
+        let wallet = await RecurringPaymentWallet.new();
+        const serviceProvider = accounts[2];
+
+        let paymentScheduleResult = await wallet.createPaymentSchedule(
+            10000,
+            2,
+            2019,
+            12,
+            12,
+            serviceProvider);
+        
+        
+        let paymentScheduleAddress = await wallet.paymentSchedules(0);
+        let paymentSchedule = await PaymentSchedule.at(paymentScheduleAddress);
+        let owner = await paymentSchedule.owner();
+
+        assert.equal(
+            owner,
+            wallet.address,
+            "Payment schedule owner should be the payment schedule that created it");
+
+    });
+
+    //should only allow wallet owner to create a payment schedule
+    //should be able to fund a transaction for a payment schedule
     //should only allow recurring payments created by this wallet to fund transactions
     //should generate due transactions
     //should have a list of due transactions
