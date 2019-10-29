@@ -1,4 +1,5 @@
 const RecurringPaymentWallet = artifacts.require("RecurringPaymentWallet");
+const truffleAssert = require('truffle-assertions');
 
 contract("RecurringPaymentWallet", accounts => {
     let owner = accounts[0];
@@ -14,8 +15,61 @@ contract("RecurringPaymentWallet", accounts => {
         );
     });
 
-    //should be able to fund the wallet
-    //should be able to withdraw from wallet
+    it("should be able to fund the wallet", async () => {
+        let wallet = await RecurringPaymentWallet.new();
+        let depositAmmount = 10000;
+        
+        await truffleAssert.reverts(
+            wallet.deposit(),
+            "Message value must be greater than zero"
+        );
+
+        await wallet.deposit({value: depositAmmount, from: owner});
+        let balance = await wallet.getBalance();
+
+        assert.equal(
+            balance, 
+            depositAmmount, 
+            "Wallet balance is incorrect"
+        );
+    });
+
+    it("should be able to withdraw from wallet", async () => {
+        let wallet = await RecurringPaymentWallet.new();
+        let depositAmmount = 100000000;
+
+        await wallet.deposit({value: depositAmmount, from: owner});
+        let balance = await wallet.getBalance();
+
+        assert.equal(
+            balance, 
+            depositAmmount, 
+            "Wallet balance is incorrect"
+        );
+
+        let ownerInitialBalance = await web3.eth.getBalance(owner);
+        const txInfo = await wallet.withdraw(depositAmmount/2);
+
+        // BALANCE AFTER TX needs to take gas cost and price into account
+        const balanceAfter = await web3.eth.getBalance(owner)*1;
+        const tx = await web3.eth.getTransaction(txInfo.tx);
+        const gasCost = (tx.gasPrice*1) * (txInfo.receipt.gasUsed*1);
+        let ownerFinalBalance = balanceAfter + gasCost;
+        
+        assert.equal(
+            ownerFinalBalance, 
+            ownerInitialBalance*1 + depositAmmount/2, 
+            "Should have deposited the correct ammount to the owner address"
+        );
+
+        balance = await wallet.getBalance();
+
+        assert.equal(
+            balance, 
+            depositAmmount/2, 
+            "Wallet balance is incorrect"
+        );
+    });
     //should only allow the owner of a wallet to withdraw funds
     //should not be able to withdraw more than you deposit
     //should be able to create a recurring payment

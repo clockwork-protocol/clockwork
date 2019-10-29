@@ -27,7 +27,7 @@ contract PaymentSchedule {
     {
         require(BokkyPooBahsDateTimeLibrary.isValidDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay), "Invalid first payment date");
         require(_paymentLeeway >= 1, "Payment leeway must be more than or equal to one day");
-        
+
         nextPaymentDate = BokkyPooBahsDateTimeLibrary.timestampFromDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay);
         owner = _owner;
         destination = _destination;
@@ -40,7 +40,6 @@ contract PaymentSchedule {
         view
         returns(bool)
     {
-        //todo:: shouldn't this also look at latestPayment().isPaid()? Yes probably
         return block.timestamp > nextPaymentDate;
     }
 

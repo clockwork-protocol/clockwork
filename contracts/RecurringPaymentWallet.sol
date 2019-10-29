@@ -16,16 +16,27 @@ contract RecurringPaymentWallet {
         _; //function body
     }
 
+    function getBalance()
+        public
+        view
+        returns(uint)
+    {
+        return address(this).balance;
+    }
+
     function deposit()
         public
         payable
     {
+        require(msg.value > 0, "Message value must be greater than zero");
     }
 
     //only owner
-    function withdraw()
+    function withdraw(uint _amount)
         public
+        onlyBy(owner)
     {
+        msg.sender.transfer(_amount);
     }
 
     function createPaymentSchedule()
