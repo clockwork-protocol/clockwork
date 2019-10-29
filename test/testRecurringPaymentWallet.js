@@ -1,4 +1,19 @@
+const RecurringPaymentWallet = artifacts.require("RecurringPaymentWallet");
+
 contract("RecurringPaymentWallet", accounts => {
+    let owner = accounts[0];
+
+    it("should set constructor parameters correctly", async () => {
+        let wallet = await RecurringPaymentWallet.new();
+        let walletOwner = await wallet.owner();
+
+        assert.equal(
+            walletOwner, 
+            owner, 
+            "Wallet owner not set ciorrectly"
+        );
+    });
+
     //should be able to fund the wallet
     //should be able to withdraw from wallet
     //should only allow the owner of a wallet to withdraw funds
