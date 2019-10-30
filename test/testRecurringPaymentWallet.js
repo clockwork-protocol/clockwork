@@ -1,12 +1,35 @@
 const RecurringPaymentWallet = artifacts.require("RecurringPaymentWallet");
 const PaymentSchedule = artifacts.require("PaymentSchedule");
+const Payment = artifacts.require("Payment");
+
 const truffleAssert = require('truffle-assertions');
 const helper = require("./helpers/truffleTestHelper");
-
+const BN = require('bn.js');
 
 contract("RecurringPaymentWallet", accounts => {
+    var today = new Date();
     const owner = accounts[0];
     const hacker = accounts[1];
+
+    let createNotDuePaymentSchedule = async (wallet, amount, serviceProvider) => {
+        return wallet.createPaymentSchedule(
+            amount,
+            2,
+            today.getFullYear(),
+            today.getMonth()+1,
+            today.getDate()+1, 
+            serviceProvider);
+    };
+
+    let createDuePaymentSchedule = async (wallet, amount, serviceProvider) => {
+        return wallet.createPaymentSchedule(
+            amount,
+            2,
+            today.getFullYear(),
+            today.getMonth()+1,
+            today.getDate()-1, 
+            serviceProvider);
+    };
 
     beforeEach(async() => {
         snapShot = await helper.takeSnapshot();
@@ -64,10 +87,12 @@ contract("RecurringPaymentWallet", accounts => {
         const txInfo = await wallet.withdraw(depositAmount/2);
 
         // BALANCE AFTER TX needs to take gas cost and price into account
-        const balanceAfter = await web3.eth.getBalance(owner)*1;
+        const balanceAfter = new BN(await web3.eth.getBalance(owner));
         const tx = await web3.eth.getTransaction(txInfo.tx);
-        const gasCost = (tx.gasPrice*1) * (txInfo.receipt.gasUsed*1);
-        let ownerFinalBalance = balanceAfter + gasCost;
+        const gasPrice = new BN(tx.gasPrice);
+        const gasUsed = new BN(txInfo.receipt.gasUsed);
+        const gasCost = gasPrice.mul(gasUsed);
+        let ownerFinalBalance = balanceAfter.add(gasCost);
         
         assert.equal(
             ownerFinalBalance, 
@@ -126,13 +151,7 @@ contract("RecurringPaymentWallet", accounts => {
         let wallet = await RecurringPaymentWallet.new();
         const serviceProvider = accounts[2];
 
-        let paymentScheduleResult = await wallet.createPaymentSchedule(
-            10000,
-            2,
-            2019,
-            12,
-            12,
-            serviceProvider);
+        await createNotDuePaymentSchedule(wallet, 10000, serviceProvider);
         
         let count = await wallet.paymentScheduleCount();
         assert.equal(
@@ -162,9 +181,9 @@ contract("RecurringPaymentWallet", accounts => {
             wallet.createPaymentSchedule(
                 10000,
                 2,
-                2019,
-                12,
-                12,
+                today.getFullYear(),
+                today.getMonth()+1,
+                today.getDate()+1, 
                 serviceProvider, {from : hacker}),
             "Sender not authorized."
         );
@@ -180,18 +199,62 @@ contract("RecurringPaymentWallet", accounts => {
         await wallet.deposit({value: depositAmount, from: owner});
 
         //create 2 due payments and 2 that are not due
-        await wallet.createPaymentSchedule(
-            10000,
-            2,
-            2019,
-            12,
-            12,
-            serviceProvider);
+        await createNotDuePaymentSchedule(wallet, 10000, serviceProvider);
+        await createDuePaymentSchedule(wallet, 20000, serviceProvider);
+        await createNotDuePaymentSchedule(wallet, 30000, serviceProvider);
+        await createDuePaymentSchedule(wallet, 40000, serviceProvider);
         
         //there should be 4 paymentSchedules
+        let count = await wallet.paymentScheduleCount();
+        assert.equal(
+            count,
+            4,
+            "There should be 4 payment schedules");
 
-        //create + fund due payments
-        
+        //create + fund first payment
+        let tx = await wallet.createAndFundDuePaymentForPaymentSchedule(0);
+        truffleAssert.eventNotEmitted(tx, 'DuePaymentCreated');
+
+        //create + fund 2nd payment
+        tx = await wallet.createAndFundDuePaymentForPaymentSchedule(1);
+        var event;
+        truffleAssert.eventEmitted(tx, 'DuePaymentCreated', (ev) => {
+            event = ev;
+            return true;
+        });
+        let payment = await Payment.at(event.duePayment);
+        let paymentAmount = await payment.paymentAmount();
+        assert.equal(
+            paymentAmount,
+            20000,
+            "First due payment should have a the correct payment amount");
+
+        //create + fund third payment
+        tx = await wallet.createAndFundDuePaymentForPaymentSchedule(2);
+        truffleAssert.eventNotEmitted(tx, 'DuePaymentCreated');
+
+        //create + fund 4th payment
+        tx = await wallet.createAndFundDuePaymentForPaymentSchedule(3);
+        truffleAssert.eventEmitted(tx, 'DuePaymentCreated', (ev) => {
+            event = ev;
+            return true;
+        });
+        payment = await Payment.at(event.duePayment);
+        paymentAmount = await payment.paymentAmount();
+        assert.equal(
+            paymentAmount,
+            40000,
+            "2nd due payment should have a the correct payment amount");
+
+        //Test range asserts
+        await truffleAssert.reverts(
+            wallet.createAndFundDuePaymentForPaymentSchedule(-1),
+            "Position out of range"
+        );
+        await truffleAssert.reverts(
+            wallet.createAndFundDuePaymentForPaymentSchedule(4),
+            "Position out of range"
+        );
     });
     //should only fund transactions created by payment schedules owned by this wallet
     //should have a list of due transactions

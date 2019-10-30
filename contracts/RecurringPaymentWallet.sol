@@ -7,6 +7,8 @@ contract RecurringPaymentWallet {
     PaymentSchedule[] public paymentSchedules;
     address public owner = msg.sender;
 
+    event DuePaymentCreated(Payment duePayment);
+
     modifier onlyBy(address _account)
     {
         require(
@@ -17,7 +19,7 @@ contract RecurringPaymentWallet {
     }
 
     function getBalance()
-        public
+        external
         view
         returns(uint)
     {
@@ -25,7 +27,7 @@ contract RecurringPaymentWallet {
     }
 
     function deposit()
-        public
+        external
         payable
     {
         require(msg.value > 0, "Message value must be greater than zero");
@@ -33,7 +35,7 @@ contract RecurringPaymentWallet {
 
     //only owner
     function withdraw(uint _amount)
-        public
+        external
         onlyBy(owner)
     {
         require(_amount <= address(this).balance, "Withdrawal request exceeds balance");
@@ -47,7 +49,7 @@ contract RecurringPaymentWallet {
             uint _firstPaymentMonth,
             uint _firstPaymentDay,
             address payable _destination)
-        public
+        external
         onlyBy(owner)
         returns(PaymentSchedule)
     {
@@ -64,21 +66,32 @@ contract RecurringPaymentWallet {
     }
 
     function paymentScheduleCount()
-        public
+        external
         view
         returns(uint)
     {
         return paymentSchedules.length;
     }
 
-    function fundPayment(Payment payment)
-        public
+    function createAndFundDuePaymentForPaymentSchedule(uint position)
+        external
         returns(bool)
     {
+        require((position < paymentSchedules.length) && (position >= 0), "Position out of range");
+
+        PaymentSchedule ps = paymentSchedules[position];
+        require(ps.owner() == address(this), "Can only fund payment schedules owned by this wallet");
+
+        //if isDue create + fund payment
+        if (ps.isNextPaymentDue()){
+            ps.createNextPayment.value(ps.subscriptionAmmount())();
+            //emit due payment
+            emit DuePaymentCreated(ps.latestPayment());
+        }
     }
 
     function generateDueTransaction()
-        public
+        external
     {
     }
 }

@@ -23,7 +23,7 @@ contract PaymentSchedule {
                 address _owner,
                 address payable _destination)
         public
-        payable
+        payable //todo : remove payble from constructor and update all tests
     {
         require(BokkyPooBahsDateTimeLibrary.isValidDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay), "Invalid first payment date");
         require(_paymentLeeway >= 1, "Payment leeway must be more than or equal to one day");
@@ -79,15 +79,17 @@ contract PaymentSchedule {
     }
 
     function createNextPayment()
-        public
+        external
+        payable
     {
+        //todo make function payable
         require(isNextPaymentDue(), "PaymentSchedule must be due to create a payment");
         if (payments.length > 0) {
             require(latestPayment().isPaid(), "Can only create a new payment if last payment has been made");
         }
+        //todo: use funds passed into this payment for the check below
         require(address(this).balance >= subscriptionAmmount, "Insufficient funds to fund payment");
-        //todo fund the payment from funding contract
-        //don't create payment if not enough funds
+
         payments.push((new Payment).value(subscriptionAmmount)(destination, subscriptionAmmount, overdueDate()));
         nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(nextPaymentDate, 1);
     }
