@@ -73,9 +73,9 @@ contract("PaymentSchedule", accounts => {
             owner, 
             "Owner should be set correctly");
 
-        let paymentScheduledestination = await paymentSchedule.destination();
+        let paymentScheduleDestination = await paymentSchedule.destination();
         assert.equal(
-            paymentScheduledestination, 
+            paymentScheduleDestination, 
             destination, 
             "Service provider should be set correctly");
 
@@ -122,14 +122,14 @@ contract("PaymentSchedule", accounts => {
             true, 
             "PaymentSchedule should be due");
             
-        //Check that the pyment is not paid
+        //Check that the payment is not paid
         let result = await paymentSchedule.createNextPayment();
         let latestPayment = await getLatestPayment(paymentSchedule);
         let isPaid = await latestPayment.isPaid.call();
         assert.equal(
-             isPaid, 
-             false, 
-             "The new payment should be marked as unpaid."
+            isPaid, 
+            false, 
+            "The new payment should be marked as unpaid."
         );
     });
 

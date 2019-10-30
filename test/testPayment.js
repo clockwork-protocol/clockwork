@@ -6,7 +6,7 @@ contract("Payment", accounts => {
     let source = accounts[1];
     let payment = 1000000000000000;
 
-    it("should pay the destination the appropriate ammount", async () => {
+    it("should pay the destination the appropriate amount", async () => {
         //get account balances before payment
         let destinationInitialBalance = await web3.eth.getBalance(destination);
         
@@ -30,7 +30,7 @@ contract("Payment", accounts => {
         assert.equal(
             destinationInitialBalance,
             destinationBalance,
-            "Destination should not receive payment untill after payment executed"
+            "Destination should not receive payment until after payment executed"
         );
 
         let result = await newPayment.execute();
@@ -50,7 +50,7 @@ contract("Payment", accounts => {
         );
     });
 
-    it("should set payment ammount correctly", async () => {
+    it("should set payment amount correctly", async () => {
         //create a new payment
         let newPayment = await Payment.new(
             destination, 
@@ -62,7 +62,7 @@ contract("Payment", accounts => {
         assert.equal(
             paymentAmount, 
             payment, 
-            "Payment ammount should be correct."
+            "Payment amount should be correct."
         );
     });
 
@@ -121,7 +121,7 @@ contract("Payment", accounts => {
         );
     });
 
-    it("should only be funded if the contract balance equals or exceeds the payment ammount", async () => {
+    it("should only be funded if the contract balance equals or exceeds the payment amount", async () => {
         let fundAmount = payment - 100;     
         //create a new payment but fund it with less than is required
         let newPayment = await Payment.new(
@@ -135,7 +135,7 @@ contract("Payment", accounts => {
         assert.equal(
             isFunded, 
             false, 
-            "Payment should not be funded if contract balance is less than payment ammount."
+            "Payment should not be funded if contract balance is less than payment amount."
         );
 
         newPayment = await Payment.new(
@@ -160,7 +160,7 @@ contract("Payment", accounts => {
         assert.equal(
             isFunded, 
             true, 
-            "Payment should be funded if contract balance equals the payment ammount."
+            "Payment should be funded if contract balance equals the payment amount."
         );
 
         newPayment = await Payment.new(
@@ -173,11 +173,11 @@ contract("Payment", accounts => {
         assert.equal(
             isFunded, 
             true, 
-            "Payment should be funded if contract balance exceeds the payment ammount."
+            "Payment should be funded if contract balance exceeds the payment amount."
         );
     });
 
     // it("should be overdue if not paid after overdue date", async () => {});
 
-    // it("should only pay the correct ammount and return the excess to the funding contract", async () => {});
+    // it("should only pay the correct amount and return the excess to the funding contract", async () => {});
 });

@@ -40,12 +40,13 @@ contract RecurringPaymentWallet {
         msg.sender.transfer(_amount);
     }
 
-    function createPaymentSchedule(uint _subscriptionAmmount,
-                                   uint _paymentLeeway,
-                                   uint _firstPaymentYear,
-                                   uint _firstPaymentMonth,
-                                   uint _firstPaymentDay,
-                                   address payable _destination)
+    function createPaymentSchedule(
+            uint _subscriptionAmmount,
+            uint _paymentLeeway,
+            uint _firstPaymentYear,
+            uint _firstPaymentMonth,
+            uint _firstPaymentDay,
+            address payable _destination)
         public
         onlyBy(owner)
         returns(PaymentSchedule)
@@ -64,8 +65,10 @@ contract RecurringPaymentWallet {
 
     function paymentScheduleCount()
         public
+        view
         returns(uint)
     {
+        paymentSchedules.length;
     }
 
     function fundPayment(Payment payment)

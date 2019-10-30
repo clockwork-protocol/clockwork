@@ -13,44 +13,44 @@ contract("RecurringPaymentWallet", accounts => {
         assert.equal(
             walletOwner, 
             owner, 
-            "Wallet owner not set ciorrectly"
+            "Wallet owner not set correctly"
         );
     });
 
     it("should be able to fund the wallet", async () => {
         let wallet = await RecurringPaymentWallet.new();
-        let depositAmmount = 10000;
+        let depositAmount = 10000;
         
         await truffleAssert.reverts(
             wallet.deposit(),
             "Message value must be greater than zero"
         );
 
-        await wallet.deposit({value: depositAmmount, from: owner});
+        await wallet.deposit({value: depositAmount, from: owner});
         let balance = await wallet.getBalance();
 
         assert.equal(
             balance, 
-            depositAmmount, 
+            depositAmount, 
             "Wallet balance is incorrect"
         );
     });
 
     it("should be able to withdraw from wallet", async () => {
         let wallet = await RecurringPaymentWallet.new();
-        let depositAmmount = 100000000;
+        let depositAmount = 100000000;
 
-        await wallet.deposit({value: depositAmmount, from: owner});
+        await wallet.deposit({value: depositAmount, from: owner});
         let balance = await wallet.getBalance();
 
         assert.equal(
             balance, 
-            depositAmmount, 
+            depositAmount, 
             "Wallet balance is incorrect"
         );
 
         let ownerInitialBalance = await web3.eth.getBalance(owner);
-        const txInfo = await wallet.withdraw(depositAmmount/2);
+        const txInfo = await wallet.withdraw(depositAmount/2);
 
         // BALANCE AFTER TX needs to take gas cost and price into account
         const balanceAfter = await web3.eth.getBalance(owner)*1;
@@ -60,53 +60,53 @@ contract("RecurringPaymentWallet", accounts => {
         
         assert.equal(
             ownerFinalBalance, 
-            ownerInitialBalance*1 + depositAmmount/2, 
-            "Should have deposited the correct ammount to the owner address"
+            ownerInitialBalance*1 + depositAmount/2, 
+            "Should have deposited the correct amount to the owner address"
         );
 
         balance = await wallet.getBalance();
 
         assert.equal(
             balance, 
-            depositAmmount/2, 
+            depositAmount/2, 
             "Wallet balance is incorrect"
         );
     });
 
     it("should only allow the owner of a wallet to withdraw funds", async () => {
         let wallet = await RecurringPaymentWallet.new();
-        let depositAmmount = 100000;
+        let depositAmount = 100000;
 
-        await wallet.deposit({value: depositAmmount, from: owner});
+        await wallet.deposit({value: depositAmount, from: owner});
         let balance = await wallet.getBalance();
 
         assert.equal(
             balance, 
-            depositAmmount, 
+            depositAmount, 
             "Wallet balance is incorrect"
         );
 
         await truffleAssert.reverts(
-            wallet.withdraw(depositAmmount/2, {from : hacker}),
+            wallet.withdraw(depositAmount/2, {from : hacker}),
             "Sender not authorized."
         );
     });
 
     it("should not be able to withdraw more than you deposit", async () => {
         let wallet = await RecurringPaymentWallet.new();
-        let depositAmmount = 100000;
+        let depositAmount = 100000;
 
-        await wallet.deposit({value: depositAmmount, from: owner});
+        await wallet.deposit({value: depositAmount, from: owner});
         let balance = await wallet.getBalance();
 
         assert.equal(
             balance, 
-            depositAmmount, 
+            depositAmount, 
             "Wallet balance is incorrect"
         );
 
         await truffleAssert.reverts(
-            wallet.withdraw(depositAmmount*2),
+            wallet.withdraw(depositAmount*2),
             "Withdrawal request exceeds balance"
         );
     });
@@ -123,9 +123,14 @@ contract("RecurringPaymentWallet", accounts => {
             12,
             serviceProvider);
         
+        // assert.equal(
+        //     count,
+        //     1,
+        //     "There should be 
+        //)
         //todo: 
-        //  research the diffirence between calling functions that change state and ones that dont
-        //  research Etherreum events
+        //  research the difference between calling functions that change state and ones that don't
+        //  research Ethereum events
         let paymentScheduleAddress = await wallet.paymentSchedules(0);
         let paymentSchedule = await PaymentSchedule.at(paymentScheduleAddress);
         let owner = await paymentSchedule.owner();
@@ -153,6 +158,7 @@ contract("RecurringPaymentWallet", accounts => {
         );
 
     });
+
     //should be able to fund a transaction for a payment schedule
     //should only allow recurring payments created by this wallet to fund transactions
     //should generate due transactions
