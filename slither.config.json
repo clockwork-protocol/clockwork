@@ -1,5 +1,6 @@
 {
-    "filter_paths": "contracts/lib"
+    "filter_paths": "contracts/lib",
+    "detectors_to_exclude": "solc-version"
 }
     
     
