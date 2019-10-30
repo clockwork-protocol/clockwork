@@ -8,10 +8,10 @@ contract RecurringPaymentWallet {
 
     event DuePaymentCreated(Payment duePayment);
 
-    modifier onlyBy(address _account)
+    modifier onlyBy(address account)
     {
         require(
-            msg.sender == _account,
+            msg.sender == account,
             "Sender not authorized."
         );
         _; //function body
@@ -33,33 +33,33 @@ contract RecurringPaymentWallet {
     }
 
     //only owner
-    function withdraw(uint _amount)
+    function withdraw(uint amount)
         external
         onlyBy(owner)
     {
-        require(_amount <= address(this).balance, "Withdrawal request exceeds balance");
-        msg.sender.transfer(_amount);
+        require(amount <= address(this).balance, "Withdrawal request exceeds balance");
+        msg.sender.transfer(amount);
     }
 
     function createPaymentSchedule(
-            uint _subscriptionAmmount,
-            uint _paymentLeeway,
-            uint _firstPaymentYear,
-            uint _firstPaymentMonth,
-            uint _firstPaymentDay,
-            address payable _destination)
+            uint subscriptionAmmount,
+            uint paymentLeeway,
+            uint firstPaymentYear,
+            uint firstPaymentMonth,
+            uint firstPaymentDay,
+            address payable destination)
         external
         onlyBy(owner)
         returns(PaymentSchedule)
     {
         PaymentSchedule paymentSchedule = new PaymentSchedule(
-            _subscriptionAmmount,
-            _paymentLeeway,
-            _firstPaymentYear,
-            _firstPaymentMonth,
-            _firstPaymentDay,
+            subscriptionAmmount,
+            paymentLeeway,
+            firstPaymentYear,
+            firstPaymentMonth,
+            firstPaymentDay,
             address(this),
-            _destination);
+            destination);
         paymentSchedules.push(paymentSchedule);
         return paymentSchedule;
     }
