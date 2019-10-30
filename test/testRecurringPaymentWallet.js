@@ -1,10 +1,21 @@
 const RecurringPaymentWallet = artifacts.require("RecurringPaymentWallet");
 const PaymentSchedule = artifacts.require("PaymentSchedule");
 const truffleAssert = require('truffle-assertions');
+const helper = require("./helpers/truffleTestHelper");
+
 
 contract("RecurringPaymentWallet", accounts => {
     const owner = accounts[0];
     const hacker = accounts[1];
+
+    beforeEach(async() => {
+        snapShot = await helper.takeSnapshot();
+        snapshotId = snapShot['result'];
+    });
+    
+    afterEach(async() => {
+        await helper.revertToSnapShot(snapshotId);
+    });
 
     it("should set constructor parameters correctly", async () => {
         let wallet = await RecurringPaymentWallet.new();
@@ -38,7 +49,7 @@ contract("RecurringPaymentWallet", accounts => {
 
     it("should be able to withdraw from wallet", async () => {
         let wallet = await RecurringPaymentWallet.new();
-        let depositAmount = 100000000;
+        let depositAmount = 10000000;
 
         await wallet.deposit({value: depositAmount, from: owner});
         let balance = await wallet.getBalance();
@@ -160,10 +171,31 @@ contract("RecurringPaymentWallet", accounts => {
 
     });
 
-    //should be able to fund a transaction for a payment schedule
-    //should only allow recurring payments created by this wallet to fund transactions
-    //should generate due transactions
+    it("should generate and fund due transactions", async () => {
+        let wallet = await RecurringPaymentWallet.new();
+        const serviceProvider = accounts[2];
+
+        //fund wallet
+        let depositAmount = 1000000000;
+        await wallet.deposit({value: depositAmount, from: owner});
+
+        //create 2 due payments and 2 that are not due
+        await wallet.createPaymentSchedule(
+            10000,
+            2,
+            2019,
+            12,
+            12,
+            serviceProvider);
+        
+        //there should be 4 paymentSchedules
+
+        //create + fund due payments
+        
+    });
+    //should only fund transactions created by payment schedules owned by this wallet
     //should have a list of due transactions
+    //should have an overduePayments flag
 
     //not required for PoC
     //should be able to cancel a recurring payment
