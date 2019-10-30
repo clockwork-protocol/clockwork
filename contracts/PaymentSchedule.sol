@@ -53,7 +53,7 @@ contract PaymentSchedule {
     }
 
     function numberOfPayments()
-        public
+        external
         view
         returns(uint)
     {
@@ -69,7 +69,7 @@ contract PaymentSchedule {
     }
 
     function isOverDue()
-        public
+        external
         view
         returns(bool)
     {

@@ -27,7 +27,7 @@ contract Payment {
     }
 
     function isOverdue()
-        public
+        external
         view
         returns(bool)
     {
@@ -35,7 +35,7 @@ contract Payment {
     }
 
     function execute()
-        public
+        external
     {
         require(isPaid == false, "Payment has already executed");
         require(isFunded(), "Insufficient funds to execute payment");
