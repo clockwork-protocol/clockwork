@@ -3,7 +3,6 @@ import "contracts/Payment.sol";
 import "contracts/PaymentSchedule.sol";
 
 contract RecurringPaymentWallet {
-    uint public balance = 0;
     PaymentSchedule[] public paymentSchedules;
     address public owner = msg.sender;
 

@@ -3,7 +3,6 @@ pragma solidity ^0.5.0;
 //Todo :
 // store the funding contract and return any excess funds to funding contract (security implications here?)
 contract Payment {
-    address private owner = msg.sender;
     address payable private destination;
     uint private overdueDate;
     uint public paymentAmount = 0;
