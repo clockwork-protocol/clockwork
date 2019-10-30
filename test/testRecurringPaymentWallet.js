@@ -123,7 +123,9 @@ contract("RecurringPaymentWallet", accounts => {
             12,
             serviceProvider);
         
-        
+        //todo: 
+        //  research the diffirence between calling functions that change state and ones that dont
+        //  research Etherreum events
         let paymentScheduleAddress = await wallet.paymentSchedules(0);
         let paymentSchedule = await PaymentSchedule.at(paymentScheduleAddress);
         let owner = await paymentSchedule.owner();
@@ -135,7 +137,22 @@ contract("RecurringPaymentWallet", accounts => {
 
     });
 
-    //should only allow wallet owner to create a payment schedule
+    it("should only allow wallet owner to create a payment schedule", async () => {
+        let wallet = await RecurringPaymentWallet.new();
+        const serviceProvider = accounts[2];
+
+        await truffleAssert.reverts(
+            wallet.createPaymentSchedule(
+                10000,
+                2,
+                2019,
+                12,
+                12,
+                serviceProvider, {from : hacker}),
+            "Sender not authorized."
+        );
+
+    });
     //should be able to fund a transaction for a payment schedule
     //should only allow recurring payments created by this wallet to fund transactions
     //should generate due transactions
