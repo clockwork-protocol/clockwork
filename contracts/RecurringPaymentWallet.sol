@@ -68,7 +68,7 @@ contract RecurringPaymentWallet {
         view
         returns(uint)
     {
-        paymentSchedules.length;
+        return paymentSchedules.length;
     }
 
     function fundPayment(Payment payment)

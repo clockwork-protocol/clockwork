@@ -123,11 +123,12 @@ contract("RecurringPaymentWallet", accounts => {
             12,
             serviceProvider);
         
-        // assert.equal(
-        //     count,
-        //     1,
-        //     "There should be 
-        //)
+        let count = await wallet.paymentScheduleCount();
+        assert.equal(
+            count,
+            1,
+            "There should be one payment schedule");
+
         //todo: 
         //  research the difference between calling functions that change state and ones that don't
         //  research Ethereum events
