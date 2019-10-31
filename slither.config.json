@@ -1,5 +1,5 @@
 {
-    "filter_paths": "contracts/lib",
+    "filter_paths": "contracts/lib,Migrations.sol",
     "detectors_to_exclude": "solc-version, timestamp"
 }
     
