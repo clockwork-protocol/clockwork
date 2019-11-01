@@ -8,6 +8,7 @@ const BN = require('bn.js');
 
 contract("RecurringPaymentWallet", accounts => {
     var today = new Date();
+    var yesterday = new Date(today -1);
     const owner = accounts[0];
     const hacker = accounts[1];
 
@@ -25,9 +26,9 @@ contract("RecurringPaymentWallet", accounts => {
         return wallet.createPaymentSchedule(
             amount,
             2,
-            today.getFullYear(),
-            today.getMonth()+1,
-            today.getDate()-1, 
+            yesterday.getFullYear(),
+            yesterday.getMonth()+1,
+            yesterday.getDate(), 
             serviceProvider);
     };
 
@@ -256,11 +257,9 @@ contract("RecurringPaymentWallet", accounts => {
             "Position out of range"
         );
     });
-    //should only fund transactions created by payment schedules owned by this wallet
-    //should have a list of due transactions
-    //should have an overduePayments flag
 
     //not required for PoC
+    //make sure 
     //should be able to cancel a recurring payment
     //should be able to pause a recurring payment
     //should be able to list all your recurring payments

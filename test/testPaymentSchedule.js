@@ -5,6 +5,7 @@ const truffleAssert = require('truffle-assertions');
 
 contract("PaymentSchedule", accounts => {
     var today = new Date();
+    var yesterday = new Date(today -1);
     let owner = accounts[1];
     let destination = accounts[2];
     let monthlyPayment = 10000000;
@@ -108,9 +109,9 @@ contract("PaymentSchedule", accounts => {
         let paymentSchedule = await PaymentSchedule.new(
             monthlyPayment,
             1, 
-            today.getFullYear(),
-            today.getMonth()+1,
-            today.getDate()-1, 
+            yesterday.getFullYear(),
+            yesterday.getMonth()+1,
+            yesterday.getDate(), 
             owner, 
             destination,
             {value: monthlyPayment, from: destination});
@@ -138,9 +139,9 @@ contract("PaymentSchedule", accounts => {
         let paymentSchedule = await PaymentSchedule.new(
             monthlyPayment, 
             1,
-            today.getFullYear(),
-            today.getMonth()+1,
-            today.getDate()-1, 
+            yesterday.getFullYear(),
+            yesterday.getMonth()+1,
+            yesterday.getDate(), 
             owner, 
             destination,
             {value: monthlyPayment*2, from: destination}); //creating 2 payments so need 2 payments
@@ -296,9 +297,9 @@ contract("PaymentSchedule", accounts => {
         let paymentSchedule = await PaymentSchedule.new(
             monthlyPayment, 
             2,
-            today.getFullYear(),
-            today.getMonth()+1,
-            today.getDate()-1, 
+            yesterday.getFullYear(),
+            yesterday.getMonth()+1,
+            yesterday.getDate(), 
             owner, 
             destination,
             {value: monthlyPayment*3, from: destination});
