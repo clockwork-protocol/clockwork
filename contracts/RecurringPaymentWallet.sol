@@ -32,7 +32,6 @@ contract RecurringPaymentWallet {
         require(msg.value > 0, "Message value must be greater than zero");
     }
 
-    //only owner
     function withdraw(uint amount)
         external
         onlyBy(owner)

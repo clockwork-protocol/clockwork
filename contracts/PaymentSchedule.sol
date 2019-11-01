@@ -2,11 +2,6 @@ pragma solidity ^0.5.0;
 import "contracts/Payment.sol";
 import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 
-//TODO ::
-// remove payable from constructor
-// fund the payment from funding contract
-//  - Dont create new payments if not enough funds in funding contract
-// add getDuePayments
 contract PaymentSchedule {
     uint public nextPaymentDate;
     uint public paymentLeeway;
@@ -23,7 +18,6 @@ contract PaymentSchedule {
                 address _owner,
                 address payable _destination)
         public
-        payable //todo : remove payble from constructor and update all tests
     {
         require(BokkyPooBahsDateTimeLibrary.isValidDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay), "Invalid first payment date");
         require(_paymentLeeway >= 1, "Payment leeway must be more than or equal to one day");
@@ -82,13 +76,11 @@ contract PaymentSchedule {
         external
         payable
     {
-        //todo make function payable
         require(isNextPaymentDue(), "PaymentSchedule must be due to create a payment");
         if (payments.length > 0) {
             require(latestPayment().isPaid(), "Can only create a new payment if last payment has been made");
         }
-        //todo: use funds passed into this payment for the check below
-        require(address(this).balance >= subscriptionAmmount, "Insufficient funds to fund payment");
+        require(msg.value >= subscriptionAmmount, "Insufficient funds to fund payment");
 
         payments.push((new Payment).value(subscriptionAmmount)(destination, subscriptionAmmount, overdueDate()));
         nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(nextPaymentDate, 1);

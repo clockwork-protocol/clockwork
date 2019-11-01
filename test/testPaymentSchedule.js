@@ -99,7 +99,7 @@ contract("PaymentSchedule", accounts => {
             "paymentSchedule should not be due");
             
         await truffleAssert.reverts(
-            paymentSchedule.createNextPayment(),
+            paymentSchedule.createNextPayment({value: monthlyPayment}),
             "PaymentSchedule must be due to create a payment"
         );
     });
@@ -113,8 +113,7 @@ contract("PaymentSchedule", accounts => {
             yesterday.getMonth()+1,
             yesterday.getDate(), 
             owner, 
-            destination,
-            {value: monthlyPayment, from: destination});
+            destination);
 
         //check that the paymentSchedule is due
         isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
@@ -124,7 +123,7 @@ contract("PaymentSchedule", accounts => {
             "PaymentSchedule should be due");
             
         //Check that the payment is not paid
-        let result = await paymentSchedule.createNextPayment();
+        let result = await paymentSchedule.createNextPayment({value: monthlyPayment});
         let latestPayment = await getLatestPayment(paymentSchedule);
         let isPaid = await latestPayment.isPaid.call();
         assert.equal(
@@ -143,15 +142,14 @@ contract("PaymentSchedule", accounts => {
             yesterday.getMonth()+1,
             yesterday.getDate(), 
             owner, 
-            destination,
-            {value: monthlyPayment*2, from: destination}); //creating 2 payments so need 2 payments
+            destination); //creating 2 payments so need 2 payments
         
         //create a payment without paying it
-        await paymentSchedule.createNextPayment();
+        await paymentSchedule.createNextPayment({value: monthlyPayment});
 
         //try create a new payment, it should fail because nextDueDate has move on
         await truffleAssert.reverts(
-            paymentSchedule.createNextPayment(),
+            paymentSchedule.createNextPayment({value: monthlyPayment}),
             "PaymentSchedule must be due to create a payment"
         );
         
@@ -160,7 +158,7 @@ contract("PaymentSchedule", accounts => {
 
         //create a new payment, it should fail because last payment hasn't been made yet
         await truffleAssert.reverts(
-            paymentSchedule.createNextPayment(),
+            paymentSchedule.createNextPayment({value: monthlyPayment}),
             "Can only create a new payment if last payment has been made"
         );
 
@@ -169,7 +167,7 @@ contract("PaymentSchedule", accounts => {
         await latestPayment.execute();
 
         //create a new payment, it should succeed
-        await paymentSchedule.createNextPayment();
+        await paymentSchedule.createNextPayment({value: monthlyPayment});
     });
 
     it("should not allow payment leeway of less than 1 day", async () => {
@@ -240,8 +238,7 @@ contract("PaymentSchedule", accounts => {
             today.getMonth()+1,
             today.getDate()+1, 
             owner, 
-            destination,
-            {value: monthlyPayment*2, from: destination});
+            destination);
 
         //subscription should not be due
         let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
@@ -261,7 +258,7 @@ contract("PaymentSchedule", accounts => {
             "paymentSchedule should now be due");
 
         //create a new payment
-        let result = await paymentSchedule.createNextPayment();
+        let result = await paymentSchedule.createNextPayment({value: monthlyPayment});
 
         //subscription should not be overdue
         let isOverdue = await paymentSchedule.isOverDue();
@@ -301,11 +298,10 @@ contract("PaymentSchedule", accounts => {
             yesterday.getMonth()+1,
             yesterday.getDate(), 
             owner, 
-            destination,
-            {value: monthlyPayment*3, from: destination});
+            destination);
 
         //create payment
-        await paymentSchedule.createNextPayment();
+        await paymentSchedule.createNextPayment({value: monthlyPayment});
 
         //there should be one payment in list
         let paymentCount = await paymentSchedule.numberOfPayments();
@@ -320,7 +316,7 @@ contract("PaymentSchedule", accounts => {
 
         //move time forward
         await helper.advanceTimeAndBlock(helper.daysToSeconds(31));
-        await paymentSchedule.createNextPayment();
+        await paymentSchedule.createNextPayment({value: monthlyPayment});
 
         //there should be 2 payment in list
         paymentCount = await paymentSchedule.numberOfPayments();
@@ -335,7 +331,7 @@ contract("PaymentSchedule", accounts => {
         
         //move time forward
         await helper.advanceTimeAndBlock(helper.daysToSeconds(31));
-        await paymentSchedule.createNextPayment();
+        await paymentSchedule.createNextPayment({value: monthlyPayment});
 
         //there should be 3 payment in list
         paymentCount = await paymentSchedule.numberOfPayments();
