@@ -26,3 +26,10 @@ config/test/contracts.json
 build
 dist
 bin/
+
+# solidity-coverage
+allFiredEvents
+scTopics
+scDebugLog
+coverage.json
+coverage/

@@ -219,7 +219,7 @@ contract("RecurringPaymentWallet", accounts => {
 
         //create + fund first payment
         let tx = await wallet.createAndFundDuePaymentForPaymentSchedule(0);
-        let paymentCount = await paymentInst.paymentCount();
+        let paymentCount = await paymentInst.paymentCount.call();
         assert.equal(
             paymentCount,
             0,
@@ -227,20 +227,20 @@ contract("RecurringPaymentWallet", accounts => {
 
         //create + fund 2nd payment
         tx = await wallet.createAndFundDuePaymentForPaymentSchedule(1);
-        paymentCount = await paymentInst.paymentCount();
+        paymentCount = await paymentInst.paymentCount.call();
         assert.equal(
             paymentCount,
             1,
             "There should be 1 payments");
 
-        let paymentAmount = await paymentInst.paymentAmount(0);
+        let paymentAmount = await paymentInst.paymentAmount.call(0);
         assert.equal(
             paymentAmount,
             20000,
             "First due payment should have a the correct payment amount");
 
         //create + fund third payment
-        paymentCount = await paymentInst.paymentCount();
+        paymentCount = await paymentInst.paymentCount.call();
         assert.equal(
             paymentCount,
             1,
@@ -248,13 +248,13 @@ contract("RecurringPaymentWallet", accounts => {
 
         //create + fund 4th payment
         tx = await wallet.createAndFundDuePaymentForPaymentSchedule(3);
-        paymentCount = await paymentInst.paymentCount();
+        paymentCount = await paymentInst.paymentCount.call();
         assert.equal(
             paymentCount,
             2,
             "There should be 2 payments");
 
-        paymentAmount = await paymentInst.paymentAmount(1);
+        paymentAmount = await paymentInst.paymentAmount.call(1);
         assert.equal(
             paymentAmount,
             40000,

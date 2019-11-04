@@ -41,7 +41,7 @@ contract("PaymentSchedule", accounts => {
             destination,
             paymentAddress);
  
-        let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        let isNextPaymentDue = await paymentSchedule.isNextPaymentDue.call();
         assert.equal(
             isNextPaymentDue, 
             false, 
@@ -49,7 +49,7 @@ contract("PaymentSchedule", accounts => {
 
         const newBlock = await helper.advanceTimeAndBlock(helper.daysToSeconds(2));
         
-        isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        isNextPaymentDue = await paymentSchedule.isNextPaymentDue.call();
         assert.equal(
             isNextPaymentDue, 
             true, 
@@ -92,7 +92,7 @@ contract("PaymentSchedule", accounts => {
             destination,
             paymentAddress);
         //check that the paymentSchedule is not due
-        isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        isNextPaymentDue = await paymentSchedule.isNextPaymentDue.call();
         assert.equal(
             isNextPaymentDue, 
             false, 
@@ -117,7 +117,7 @@ contract("PaymentSchedule", accounts => {
             paymentAddress);
 
         //check that the paymentSchedule is due
-        isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        isNextPaymentDue = await paymentSchedule.isNextPaymentDue.call();
         assert.equal(
             isNextPaymentDue, 
             true, 
@@ -128,7 +128,7 @@ contract("PaymentSchedule", accounts => {
 
         //get latest payment
         let paymentID = await paymentSchedule.latestPaymentId();
-        let isPaid = await paymentInst.isExecuted(paymentID);
+        let isPaid = await paymentInst.isExecuted.call(paymentID);
 
         assert.equal(
             isPaid, 
@@ -201,7 +201,7 @@ contract("PaymentSchedule", accounts => {
             paymentAddress);
 
         //subscription should not be due
-        let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        let isNextPaymentDue = await paymentSchedule.isNextPaymentDue.call();
         assert.equal(
             isNextPaymentDue, 
             false, 
@@ -211,14 +211,14 @@ contract("PaymentSchedule", accounts => {
         await helper.advanceTimeAndBlock(helper.daysToSeconds(2));
 
         //subscription should be due
-        isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        isNextPaymentDue = await paymentSchedule.isNextPaymentDue.call();
         assert.equal(
             isNextPaymentDue, 
             true, 
             "paymentSchedule should now be due");
 
         //subscription should not be overdue
-        let isOverdue = await paymentSchedule.isOverDue();
+        let isOverdue = await paymentSchedule.isOverDue.call();
         assert.equal(
             isOverdue, 
             false, 
@@ -228,7 +228,7 @@ contract("PaymentSchedule", accounts => {
         await helper.advanceTimeAndBlock(helper.daysToSeconds(2));
 
         //subscription should be overdue
-        isOverdue = await paymentSchedule.isOverDue();
+        isOverdue = await paymentSchedule.isOverDue.call();
         assert.equal(
             isOverdue, 
             true, 
@@ -248,7 +248,7 @@ contract("PaymentSchedule", accounts => {
             paymentAddress);
 
         //subscription should not be due
-        let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        let isNextPaymentDue = await paymentSchedule.isNextPaymentDue.call();
         assert.equal(
             isNextPaymentDue, 
             false, 
@@ -258,7 +258,7 @@ contract("PaymentSchedule", accounts => {
         await helper.advanceTimeAndBlock(helper.daysToSeconds(2));
 
         //subscription should be due
-        isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
+        isNextPaymentDue = await paymentSchedule.isNextPaymentDue.call();
         assert.equal(
             isNextPaymentDue, 
             true, 
@@ -268,7 +268,7 @@ contract("PaymentSchedule", accounts => {
         let result = await paymentSchedule.createNextPayment({value: monthlyPayment});
 
         //subscription should not be overdue
-        let isOverdue = await paymentSchedule.isOverDue();
+        let isOverdue = await paymentSchedule.isOverDue.call();
         assert.equal(
             isOverdue, 
             false, 
@@ -278,7 +278,7 @@ contract("PaymentSchedule", accounts => {
         await helper.advanceTimeAndBlock(helper.daysToSeconds(3));
 
         //subscription should be overdue
-        isOverdue = await paymentSchedule.isOverDue();
+        isOverdue = await paymentSchedule.isOverDue.call();
         assert.equal(
             isOverdue, 
             true, 
@@ -288,7 +288,7 @@ contract("PaymentSchedule", accounts => {
         await paymentInst.execute(0);
 
         //subscription should not be overdue
-        isOverdue = await paymentSchedule.isOverDue();
+        isOverdue = await paymentSchedule.isOverDue.call();
         assert.equal(
             isOverdue, 
             false, 

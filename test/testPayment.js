@@ -28,7 +28,7 @@ contract("Payment", accounts => {
         let paymentID = event.id;
 
         //check payment has not executed
-        let isExecuted = await paymentInst.isExecuted(paymentID);
+        let isExecuted = await paymentInst.isExecuted.call(paymentID);
         assert.equal(
             isExecuted, 
             false, 
@@ -54,7 +54,7 @@ contract("Payment", accounts => {
             "Destination should receive payment after payment executed"
         );
 
-        isExecuted = await paymentInst.isExecuted(paymentID);
+        isExecuted = await paymentInst.isExecuted.call(paymentID);
         assert.equal(
             isExecuted, 
             true, 
@@ -120,7 +120,7 @@ contract("Payment", accounts => {
         let paymentID = event.id;
 
         //check payment has not executed
-        let isExecuted = await paymentInst.isExecuted(paymentID);
+        let isExecuted = await paymentInst.isExecuted.call(paymentID);
         assert.equal(
             isExecuted, 
             false, 

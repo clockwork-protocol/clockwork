@@ -61,7 +61,7 @@
         "mocha-multi-reporters": "^1.1.7",
         "prettier": "^1.16.1",
         "prettier-plugin-solidity-refactor": "^1.0.0-alpha.14",
-        "solidity-coverage": "0.5.11",
+        "solidity-coverage": "0.6.7",
         "solium": "1.2.2",
         "babel-cli": "^6.26.0"
     }
