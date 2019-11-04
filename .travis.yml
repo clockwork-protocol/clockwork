@@ -1,29 +1,21 @@
-language: node_js
-
 sudo: required
-
+language: node_js
 node_js:
-  - "8.11.3"
-
-env:
-  - CXX=g++-4.8
-
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - build-essential
-      - g++-4.8
-
-before_install:
-  - export CXX="g++-4.8"
-  - npm install -g npm@latest
-  - npm install -g ganache-cli truffle
-
+  - "9"
+cache:
+  directories:
+  - node_modules
 install:
-  - npm install 
-
+  - npm install -g truffle@beta
+  - npm install -g ganache-cli
+  - npm install
 script:
-  - ganache-cli &
+  - npm run lint
+  - npm run solium
+  - npm run ganache
+  - sleep 5
+  - truffle migrate --network test
   - truffle test
+  - npm run stop
+after_script:
+  - npm run coverage && cat coverage/lcov.info | coveralls
