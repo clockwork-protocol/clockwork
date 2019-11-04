@@ -6,8 +6,6 @@ contract RecurringPaymentWallet {
     PaymentSchedule[] public paymentSchedules;
     address public owner = msg.sender;
 
-    event DuePaymentCreated(Payment duePayment);
-
     modifier onlyBy(address account)
     {
         require(
@@ -46,7 +44,8 @@ contract RecurringPaymentWallet {
             uint firstPaymentYear,
             uint firstPaymentMonth,
             uint firstPaymentDay,
-            address payable destination)
+            address payable destination,
+            Payment payment)
         external
         onlyBy(owner)
         returns(PaymentSchedule)
@@ -58,7 +57,8 @@ contract RecurringPaymentWallet {
             firstPaymentMonth,
             firstPaymentDay,
             address(this),
-            destination);
+            destination,
+            payment);
         paymentSchedules.push(paymentSchedule);
         return paymentSchedule;
     }
@@ -83,8 +83,6 @@ contract RecurringPaymentWallet {
         //if isDue create + fund payment
         if (ps.isNextPaymentDue()){
             ps.createNextPayment.value(ps.subscriptionAmmount())();
-            //emit due payment
-            emit DuePaymentCreated(ps.latestPayment());
         }
     }
 

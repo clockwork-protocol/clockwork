@@ -9,6 +9,8 @@ contract("PaymentSchedule", accounts => {
     let owner = accounts[1];
     let destination = accounts[2];
     let monthlyPayment = 10000000;
+    var paymentInst;
+    var paymentAddress;
 
     //Helper function to get the latest payment from a payment schedule
     let getLatestPayment = async(paymentSchedule) => {
@@ -17,16 +19,11 @@ contract("PaymentSchedule", accounts => {
         return latestPayment;
     };
 
-    //Helper function to get the a payment from a payment schedule
-    let getPayment = async(paymentSchedule, position) => {
-        latestPaymentAddress = await paymentSchedule.payments(position); //returns an address
-        let latestPayment = await Payment.at(latestPaymentAddress); //get the payment at returned address
-        return latestPayment;
-    };
-
     beforeEach(async() => {
         snapShot = await helper.takeSnapshot();
         snapshotId = snapShot['result'];
+        paymentInst = await Payment.deployed();
+        paymentAddress = paymentInst.address;
     });
     
     afterEach(async() => {
@@ -41,7 +38,8 @@ contract("PaymentSchedule", accounts => {
             today.getMonth()+1,
             today.getDate()+1,
             owner,
-            destination);
+            destination,
+            paymentAddress);
  
         let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
         assert.equal(
@@ -66,7 +64,8 @@ contract("PaymentSchedule", accounts => {
             today.getMonth()+1,
             today.getDate()+1, 
             owner, 
-            destination);
+            destination,
+            paymentAddress);
 
         let paymentScheduleOwner = await paymentSchedule.owner();
         assert.equal(
@@ -90,7 +89,8 @@ contract("PaymentSchedule", accounts => {
             today.getMonth()+1,
             today.getDate()+1, 
             owner, 
-            destination);
+            destination,
+            paymentAddress);
         //check that the paymentSchedule is not due
         isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
         assert.equal(
@@ -113,7 +113,8 @@ contract("PaymentSchedule", accounts => {
             yesterday.getMonth()+1,
             yesterday.getDate(), 
             owner, 
-            destination);
+            destination,
+            paymentAddress);
 
         //check that the paymentSchedule is due
         isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
@@ -124,8 +125,11 @@ contract("PaymentSchedule", accounts => {
             
         //Check that the payment is not paid
         let result = await paymentSchedule.createNextPayment({value: monthlyPayment});
-        let latestPayment = await getLatestPayment(paymentSchedule);
-        let isPaid = await latestPayment.isPaid.call();
+
+        //get latest payment
+        let paymentID = await paymentSchedule.latestPaymentId();
+        let isPaid = await paymentInst.isExecuted(paymentID);
+
         assert.equal(
             isPaid, 
             false, 
@@ -142,7 +146,8 @@ contract("PaymentSchedule", accounts => {
             yesterday.getMonth()+1,
             yesterday.getDate(), 
             owner, 
-            destination); //creating 2 payments so need 2 payments
+            destination,
+            paymentAddress); //creating 2 payments so need 2 payments
         
         //create a payment without paying it
         await paymentSchedule.createNextPayment({value: monthlyPayment});
@@ -163,8 +168,7 @@ contract("PaymentSchedule", accounts => {
         );
 
         //execute the payment
-        let latestPayment = await getLatestPayment(paymentSchedule);
-        await latestPayment.execute();
+        await paymentInst.execute(0);
 
         //create a new payment, it should succeed
         await paymentSchedule.createNextPayment({value: monthlyPayment});
@@ -179,7 +183,8 @@ contract("PaymentSchedule", accounts => {
                 today.getMonth()+1,
                 today.getDate()+1, 
                 owner, 
-                destination),
+                destination,
+                paymentAddress),
             "Payment leeway must be more than or equal to one day");
     });
 
@@ -192,7 +197,8 @@ contract("PaymentSchedule", accounts => {
             today.getMonth()+1,
             today.getDate()+1, 
             owner, 
-            destination);
+            destination,
+            paymentAddress);
 
         //subscription should not be due
         let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
@@ -238,7 +244,8 @@ contract("PaymentSchedule", accounts => {
             today.getMonth()+1,
             today.getDate()+1, 
             owner, 
-            destination);
+            destination,
+            paymentAddress);
 
         //subscription should not be due
         let isNextPaymentDue = await paymentSchedule.isNextPaymentDue();
@@ -278,8 +285,7 @@ contract("PaymentSchedule", accounts => {
             "paymentSchedule should be overdue");
 
         //execute the payment
-        let latestPayment = await getLatestPayment(paymentSchedule);
-        await latestPayment.execute();
+        await paymentInst.execute(0);
 
         //subscription should not be overdue
         isOverdue = await paymentSchedule.isOverDue();
@@ -287,62 +293,6 @@ contract("PaymentSchedule", accounts => {
             isOverdue, 
             false, 
             "paymentSchedule should not be overdue");
-    });
-
-    it("should have a list of past payments", async () => {
-        //create a payment schedule
-        let paymentSchedule = await PaymentSchedule.new(
-            monthlyPayment, 
-            2,
-            yesterday.getFullYear(),
-            yesterday.getMonth()+1,
-            yesterday.getDate(), 
-            owner, 
-            destination);
-
-        //create payment
-        await paymentSchedule.createNextPayment({value: monthlyPayment});
-
-        //there should be one payment in list
-        let paymentCount = await paymentSchedule.numberOfPayments();
-        assert.equal(
-            paymentCount, 
-            1, 
-            "There should be one payment in the list");
-
-        //execute payment
-        let payment = await getPayment(paymentSchedule, 0);
-        await payment.execute();
-
-        //move time forward
-        await helper.advanceTimeAndBlock(helper.daysToSeconds(31));
-        await paymentSchedule.createNextPayment({value: monthlyPayment});
-
-        //there should be 2 payment in list
-        paymentCount = await paymentSchedule.numberOfPayments();
-        assert.equal(
-            paymentCount, 
-            2, 
-            "There should be two payments in the list");
-
-        //execute payment
-        payment = await getPayment(paymentSchedule, 1);
-        await payment.execute();
-        
-        //move time forward
-        await helper.advanceTimeAndBlock(helper.daysToSeconds(31));
-        await paymentSchedule.createNextPayment({value: monthlyPayment});
-
-        //there should be 3 payment in list
-        paymentCount = await paymentSchedule.numberOfPayments();
-        assert.equal(
-            paymentCount, 
-            3, 
-            "There should be three payments in the list");
-
-        //execute payment
-        payment = await getPayment(paymentSchedule, 2);
-        await payment.execute();
     });
 
     // it("should only allow funding contracts as source", async () => {

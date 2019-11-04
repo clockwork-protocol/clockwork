@@ -9,19 +9,30 @@ contract("Payment", accounts => {
     it("should pay the destination the appropriate amount", async () => {
         //get account balances before payment
         let destinationInitialBalance = await web3.eth.getBalance(destination);
-        
+        let paymentInst = await Payment.deployed();
+
         //create a new payment
-        let newPayment = await Payment.new(
+        let tx = await paymentInst.createPayment(
             destination, 
             payment, 
             0,
             {value: payment, from: source});
 
-        let isPaid = await newPayment.isPaid.call();
+        //check event was emitted
+        var event;
+        truffleAssert.eventEmitted(tx, 'PaymentCreated', (ev) => {
+            event = ev;
+            return true;
+        });
+        //capture the payment ID
+        let paymentID = event.id;
+
+        //check payment has not executed
+        let isExecuted = await paymentInst.isExecuted(paymentID);
         assert.equal(
-            isPaid, 
+            isExecuted, 
             false, 
-            "A new payment should be marked as unpaid."
+            "A new payment should be marked as un-executed."
         );
 
         //get account balances before payment
@@ -33,7 +44,8 @@ contract("Payment", accounts => {
             "Destination should not receive payment until after payment executed"
         );
 
-        let result = await newPayment.execute();
+        //execute the first payment
+        let result = await paymentInst.execute(0);
         destinationBalance = await web3.eth.getBalance(destination);
 
         assert.equal(
@@ -42,138 +54,94 @@ contract("Payment", accounts => {
             "Destination should receive payment after payment executed"
         );
 
-        isPaid = await newPayment.isPaid.call();
+        isExecuted = await paymentInst.isExecuted(paymentID);
         assert.equal(
-            isPaid, 
+            isExecuted, 
             true, 
-            "Payment should be marked as paid after the payment is complete."
+            "Payment should be marked as executed after the payment is complete."
         );
     });
 
     it("should set payment amount correctly", async () => {
         //create a new payment
-        let newPayment = await Payment.new(
+        let paymentInst = await Payment.deployed();
+        let tx = await paymentInst.createPayment(
             destination, 
             payment, 
             0,
             {value: payment, from: source});
 
-        let paymentAmount = await newPayment.paymentAmount.call();
+        //check event was emitted
+        var event;
+        truffleAssert.eventEmitted(tx, 'PaymentCreated', (ev) => {
+            event = ev;
+            return true;
+        });
+
         assert.equal(
-            paymentAmount, 
+            event.paymentAmount, 
             payment, 
             "Payment amount should be correct."
         );
     });
 
-    it("should not execute if the contract doesn't have enough funds", async () => {   
+    it("should not be able to create a payment if insufficient funds sent", async () => {   
         let fundAmount = payment - 100;     
-        //create a new payment but fund it with less than is required
-        let newPayment = await Payment.new(
-            destination, 
-            payment, 
-            0,
-            {value: fundAmount, from: source});
-
-        let isPaid = await newPayment.isPaid.call();
-        assert.equal(
-            isPaid, 
-            false, 
-            "A new payment should be marked as unpaid."
-        );  
+        //create a new payment
+        let paymentInst = await Payment.deployed();
 
         await truffleAssert.reverts(
-            newPayment.execute(),
-            "Insufficient funds to execute payment"
+            paymentInst.createPayment(
+                destination, 
+                payment, 
+                0,
+                {value: fundAmount, from: source}),
+            "Insufficient funds sent to fund payment"
         );
     });
 
-    it("should only execute once", async () => {
+    it("should remove payments from the payment list after they have been paid", async () => {
+        let paymentInst = await Payment.deployed();
+
         //create a new payment
-        let newPayment = await Payment.new(
+        let tx = await paymentInst.createPayment(
             destination, 
             payment, 
             0,
             {value: payment, from: source});
 
-        let isPaid = await newPayment.isPaid.call();
+        //check event was emitted
+        var event;
+        truffleAssert.eventEmitted(tx, 'PaymentCreated', (ev) => {
+            event = ev;
+            return true;
+        });
+        //capture the payment ID
+        let paymentID = event.id;
+
+        //check payment has not executed
+        let isExecuted = await paymentInst.isExecuted(paymentID);
         assert.equal(
-            isPaid, 
+            isExecuted, 
             false, 
-            "A new payment should be marked as unpaid."
+            "A new payment should be marked as un-executed."
+        );
+
+        let count = await paymentInst.paymentCount();
+        assert.equal(
+            1, 
+            1, 
+            "There should be 1 unexecuted payment"
         );
 
         //execute the payment
-        let result = await newPayment.execute();
+        let result = await paymentInst.execute(0);
 
-        //check that it is paid
-        isPaid = await newPayment.isPaid.call();
+        count = await paymentInst.paymentCount();
         assert.equal(
-            isPaid, 
-            true, 
-            "Payment should be marked as paid after the payment is complete."
-        );
-        
-        //try execute it again
-        await truffleAssert.reverts(
-            newPayment.execute(),
-            "Payment has already executed"
-        );
-    });
-
-    it("should only be funded if the contract balance equals or exceeds the payment amount", async () => {
-        let fundAmount = payment - 100;     
-        //create a new payment but fund it with less than is required
-        let newPayment = await Payment.new(
-            destination, 
-            payment, 
-            0,
-            {value: fundAmount, from: source});
-
-        //check that it is not funded
-        isFunded = await newPayment.isFunded.call();
-        assert.equal(
-            isFunded, 
-            false, 
-            "Payment should not be funded if contract balance is less than payment amount."
-        );
-
-        newPayment = await Payment.new(
-            destination, 
-            payment,
-            0);
-        //check that it is not funded
-        isFunded = await newPayment.isFunded.call();
-        assert.equal(
-            isFunded, 
-            false, 
-            "Payment should not be funded if contract balance is zero."
-        );
-
-        newPayment = await Payment.new(
-            destination, 
-            payment,
             0, 
-            {value: payment, from: source});
-        //check that it is funded
-        isFunded = await newPayment.isFunded.call();
-        assert.equal(
-            isFunded, 
-            true, 
-            "Payment should be funded if contract balance equals the payment amount."
-        );
-
-        newPayment = await Payment.new(
-            destination, 
-            payment, 
-            0,
-            {value: payment+100, from: source});
-        //check that it is funded
-        isFunded = await newPayment.isFunded.call();
-        assert.equal(
-            isFunded, 
-            true, 
-            "Payment should be funded if contract balance exceeds the payment amount."
+            0, 
+            "There should be no unexecuted payments"
         );
     });
 

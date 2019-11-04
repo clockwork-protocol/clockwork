@@ -2,13 +2,17 @@ pragma solidity ^0.5.0;
 import "contracts/Payment.sol";
 import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 
+//TODO
+//Use single instance of payment and set from constructor
+//store latest payment as an ID
 contract PaymentSchedule {
     uint public nextPaymentDate;
     uint public paymentLeeway;
     address public owner;
     address payable public destination;
     uint public subscriptionAmmount = 0;
-    Payment[] public payments;
+    Payment public payment;
+    bytes32 public latestPaymentId;
 
     constructor(uint _subscriptionAmmount,
                 uint _paymentLeeway,
@@ -16,7 +20,8 @@ contract PaymentSchedule {
                 uint firstPaymentMonth,
                 uint firstPaymentDay,
                 address _owner,
-                address payable _destination)
+                address payable _destination,
+                Payment _payment)
         public
     {
         require(BokkyPooBahsDateTimeLibrary.isValidDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay), "Invalid first payment date");
@@ -27,6 +32,7 @@ contract PaymentSchedule {
         destination = _destination;
         subscriptionAmmount = _subscriptionAmmount;
         paymentLeeway = _paymentLeeway;
+        payment = _payment;
     }
 
     function isNextPaymentDue()
@@ -35,23 +41,6 @@ contract PaymentSchedule {
         returns(bool)
     {
         return block.timestamp > nextPaymentDate;
-    }
-
-    function latestPayment()
-        public
-        view
-        returns(Payment)
-    {
-        require(payments.length > 0, "No payments created yet");
-        return payments[payments.length-1];
-    }
-
-    function numberOfPayments()
-        external
-        view
-        returns(uint)
-    {
-        return payments.length;
     }
 
     function overdueDate()
@@ -68,7 +57,7 @@ contract PaymentSchedule {
         returns(bool)
     {
         bool isSubscriptionOverdue = block.timestamp > overdueDate();
-        bool isLatestPaymentOverdue = payments.length > 0 && latestPayment().isOverdue();
+        bool isLatestPaymentOverdue = payment.isOverdue(latestPaymentId);
         return isSubscriptionOverdue || isLatestPaymentOverdue;
     }
 
@@ -77,12 +66,10 @@ contract PaymentSchedule {
         payable
     {
         require(isNextPaymentDue(), "PaymentSchedule must be due to create a payment");
-        if (payments.length > 0) {
-            require(latestPayment().isPaid(), "Can only create a new payment if last payment has been made");
-        }
+        require(payment.isExecuted(latestPaymentId), "Can only create a new payment if last payment has been made");
         require(msg.value >= subscriptionAmmount, "Insufficient funds to fund payment");
 
-        payments.push((new Payment).value(subscriptionAmmount)(destination, subscriptionAmmount, overdueDate()));
+        latestPaymentId = payment.createPayment.value(subscriptionAmmount)(destination, subscriptionAmmount, overdueDate());
         nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(nextPaymentDate, 1);
     }
 }
