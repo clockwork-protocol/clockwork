@@ -2,6 +2,7 @@ pragma solidity ^0.5.0;
 import "contracts/Payment.sol";
 import "contracts/PaymentSchedule.sol";
 
+
 contract RecurringPaymentWallet {
     PaymentSchedule[] public paymentSchedules;
     address public owner = msg.sender;
@@ -39,13 +40,13 @@ contract RecurringPaymentWallet {
     }
 
     function createPaymentSchedule(
-            uint subscriptionAmmount,
-            uint paymentLeeway,
-            uint firstPaymentYear,
-            uint firstPaymentMonth,
-            uint firstPaymentDay,
-            address payable destination,
-            Payment payment)
+        uint subscriptionAmmount,
+        uint paymentLeeway,
+        uint firstPaymentYear,
+        uint firstPaymentMonth,
+        uint firstPaymentDay,
+        address payable destination,
+        Payment payment)
         external
         onlyBy(owner)
         returns(PaymentSchedule)
@@ -81,7 +82,7 @@ contract RecurringPaymentWallet {
         require(ps.owner() == address(this), "Can only fund payment schedules owned by this wallet");
 
         //if isDue create + fund payment
-        if (ps.isNextPaymentDue()){
+        if (ps.isNextPaymentDue()) {
             ps.createNextPayment.value(ps.subscriptionAmmount())();
         }
     }

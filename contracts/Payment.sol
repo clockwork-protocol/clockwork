@@ -1,8 +1,5 @@
 pragma solidity ^0.5.0;
 
-//Todo :
-// edit migration to create contract
-// fix tests
 
 contract Payment {
 
@@ -39,10 +36,21 @@ contract Payment {
         require(msg.value >= _paymentAmount, "Insufficient funds sent to fund payment");
 
         //is it ok to use block.timeStamp here or should we use a random number generator?
-        bytes32 _paymentId = keccak256(abi.encodePacked(_overdueDate, _paymentAmount, false, _destination, msg.sender, block.timestamp));
+        bytes32 _paymentId = keccak256(abi.encodePacked(
+            _overdueDate, 
+            _paymentAmount, 
+            false, 
+            _destination, 
+            msg.sender, 
+            block.timestamp));
 
         //Store payment details
-        PaymentDetails memory payment = PaymentDetails(_paymentId, _overdueDate, _paymentAmount, _destination);
+        PaymentDetails memory payment = PaymentDetails(
+            _paymentId, 
+            _overdueDate, 
+            _paymentAmount, 
+            _destination);
+
         payments.push(payment);
 
         //set payment status
@@ -50,7 +58,11 @@ contract Payment {
         paymentStatus[_paymentId].balance = msg.value;
         paymentStatus[_paymentId].overdueDate = _overdueDate;
 
-        emit PaymentCreated(_paymentId, _overdueDate, _paymentAmount, _destination);
+        emit PaymentCreated(_paymentId, 
+            _overdueDate, 
+            _paymentAmount, 
+            _destination);
+
         return _paymentId;
     }
 

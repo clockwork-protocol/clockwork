@@ -10,7 +10,6 @@
         "deprecated-suicide": "error",
         "function-whitespace": "error",
         "imports-on-top": "error",
-        "indentation": ["error", 4],
         "lbrace": "error",
         "mixedcase": "error",
         "no-empty-blocks": "error",

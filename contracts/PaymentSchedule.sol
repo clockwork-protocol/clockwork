@@ -2,9 +2,7 @@ pragma solidity ^0.5.0;
 import "contracts/Payment.sol";
 import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 
-//TODO
-//Use single instance of payment and set from constructor
-//store latest payment as an ID
+
 contract PaymentSchedule {
     uint public nextPaymentDate;
     uint public paymentLeeway;
