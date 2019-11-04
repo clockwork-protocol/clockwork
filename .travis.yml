@@ -15,7 +15,7 @@ script:
   - npm run ganache
   - sleep 5
   - truffle migrate --network test
-  - truffle test
+  - truffle test --network test
   - npm run stop
 after_script:
   - npm run coverage && cat coverage/lcov.info | coveralls
