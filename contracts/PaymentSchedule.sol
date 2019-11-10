@@ -33,6 +33,28 @@ contract PaymentSchedule {
         payment = _payment;
     }
 
+    function createNextPayment()
+        external
+        payable
+    {
+        require(isNextPaymentDue(), "PaymentSchedule must be due to create a payment");
+        require(payment.isExecuted(latestPaymentId), "Can only create a new payment if last payment has been made");
+        require(msg.value >= subscriptionAmmount, "Insufficient funds to fund payment");
+
+        latestPaymentId = payment.createPayment.value(subscriptionAmmount)(destination, subscriptionAmmount, overdueDate());
+        nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(nextPaymentDate, 1);
+    }
+
+    function isOverDue()
+        external
+        view
+        returns(bool)
+    {
+        bool isSubscriptionOverdue = block.timestamp > overdueDate();
+        bool isLatestPaymentOverdue = payment.isOverdue(latestPaymentId);
+        return isSubscriptionOverdue || isLatestPaymentOverdue;
+    }
+
     function isNextPaymentDue()
         public
         view
@@ -47,27 +69,5 @@ contract PaymentSchedule {
         returns(uint)
     {
         return BokkyPooBahsDateTimeLibrary.addDays(nextPaymentDate, paymentLeeway);
-    }
-
-    function isOverDue()
-        external
-        view
-        returns(bool)
-    {
-        bool isSubscriptionOverdue = block.timestamp > overdueDate();
-        bool isLatestPaymentOverdue = payment.isOverdue(latestPaymentId);
-        return isSubscriptionOverdue || isLatestPaymentOverdue;
-    }
-
-    function createNextPayment()
-        external
-        payable
-    {
-        require(isNextPaymentDue(), "PaymentSchedule must be due to create a payment");
-        require(payment.isExecuted(latestPaymentId), "Can only create a new payment if last payment has been made");
-        require(msg.value >= subscriptionAmmount, "Insufficient funds to fund payment");
-
-        latestPaymentId = payment.createPayment.value(subscriptionAmmount)(destination, subscriptionAmmount, overdueDate());
-        nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(nextPaymentDate, 1);
     }
 }
