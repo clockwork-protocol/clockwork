@@ -101,6 +101,7 @@ contract Payment {
         //make sure funds are sent
         require(msg.value >= _paymentAmount, "Insufficient funds sent to fund payment");
 
+        //Generate ID
         //is it ok to use block.timeStamp here or should we use a random number generator?
         bytes32 _paymentId = keccak256(
             abi.encodePacked(

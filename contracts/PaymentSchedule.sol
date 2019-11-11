@@ -9,9 +9,11 @@ import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 // Store and retrieve ID's by source
 // Store and retrieve ID's by destination
 
+
 contract PaymentSchedule {
 
     struct PaymentScheduleDetails {
+        bytes32 id;
         uint nextPaymentDate;
         uint paymentLeeway;
         address owner;
@@ -25,22 +27,36 @@ contract PaymentSchedule {
 
     constructor(uint _subscriptionAmmount,
                 uint _paymentLeeway,
-                uint firstPaymentYear,
-                uint firstPaymentMonth,
-                uint firstPaymentDay,
+                uint _firstPaymentYear,
+                uint _firstPaymentMonth,
+                uint _firstPaymentDay,
                 address _owner,
                 address payable _destination,
                 Payment _payment)
         public
     {
-        require(BokkyPooBahsDateTimeLibrary.isValidDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay), "Invalid first payment date");
+        require(BokkyPooBahsDateTimeLibrary.isValidDate(_firstPaymentYear, _firstPaymentMonth, _firstPaymentDay), "Invalid first payment date");
         require(_paymentLeeway >= 1, "Payment leeway must be more than or equal to one day");
 
-        details.nextPaymentDate = BokkyPooBahsDateTimeLibrary.timestampFromDate(firstPaymentYear, firstPaymentMonth, firstPaymentDay);
+        //Generate ID
+        //is it ok to use block.timeStamp here or should we use a random number generator?
+        details.id = keccak256(
+            abi.encodePacked(
+                _subscriptionAmmount,
+                _firstPaymentYear,
+                _firstPaymentMonth,
+                _firstPaymentDay,
+                _owner,
+                _destination,
+                block.timestamp
+            )
+        );
+        details.nextPaymentDate = BokkyPooBahsDateTimeLibrary.timestampFromDate(_firstPaymentYear, _firstPaymentMonth, _firstPaymentDay);
         details.owner = _owner;
         details.destination = _destination;
         details.subscriptionAmmount = _subscriptionAmmount;
         details.paymentLeeway = _paymentLeeway;
+        
         payment = _payment;
     }
 
