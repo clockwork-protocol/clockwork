@@ -2,13 +2,6 @@ pragma solidity ^0.5.0;
 import "contracts/Payment.sol";
 import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 
-//TODO::
-// Get rid of constructor
-// x Create struct to store payment schedule information
-// Generate ID and store payment schedules in map
-// Store and retrieve ID's by source
-// Store and retrieve ID's by destination
-
 
 contract PaymentSchedule {
 
@@ -22,25 +15,34 @@ contract PaymentSchedule {
         bytes32 latestPaymentId;
     }
 
-    Payment private payment;
-    PaymentScheduleDetails private details;
+    event PaymentScheduleCreated(bytes32 id);
 
-    constructor(uint _subscriptionAmmount,
-                uint _paymentLeeway,
-                uint _firstPaymentYear,
-                uint _firstPaymentMonth,
-                uint _firstPaymentDay,
-                address _owner,
-                address payable _destination,
-                Payment _payment)
+    mapping(bytes32 => PaymentScheduleDetails) public details;
+    Payment private payment;
+
+    constructor(Payment _payment)
         public
+    {
+        payment = _payment;
+    }
+
+    function createPaymentSchedule(
+        uint _subscriptionAmmount,
+        uint _paymentLeeway,
+        uint _firstPaymentYear,
+        uint _firstPaymentMonth,
+        uint _firstPaymentDay,
+        address _owner,
+        address payable _destination)
+        external
+        returns(bytes32)
     {
         require(BokkyPooBahsDateTimeLibrary.isValidDate(_firstPaymentYear, _firstPaymentMonth, _firstPaymentDay), "Invalid first payment date");
         require(_paymentLeeway >= 1, "Payment leeway must be more than or equal to one day");
 
         //Generate ID
         //is it ok to use block.timeStamp here or should we use a random number generator?
-        details.id = keccak256(
+        bytes32 _scheduleId = keccak256(
             abi.encodePacked(
                 _subscriptionAmmount,
                 _firstPaymentYear,
@@ -51,86 +53,92 @@ contract PaymentSchedule {
                 block.timestamp
             )
         );
-        details.nextPaymentDate = BokkyPooBahsDateTimeLibrary.timestampFromDate(_firstPaymentYear, _firstPaymentMonth, _firstPaymentDay);
-        details.owner = _owner;
-        details.destination = _destination;
-        details.subscriptionAmmount = _subscriptionAmmount;
-        details.paymentLeeway = _paymentLeeway;
-        
-        payment = _payment;
+
+        details[_scheduleId].id = _scheduleId;
+        details[_scheduleId].nextPaymentDate = BokkyPooBahsDateTimeLibrary.timestampFromDate(
+            _firstPaymentYear,
+            _firstPaymentMonth,
+            _firstPaymentDay);
+        details[_scheduleId].owner = _owner;
+        details[_scheduleId].destination = _destination;
+        details[_scheduleId].subscriptionAmmount = _subscriptionAmmount;
+        details[_scheduleId].paymentLeeway = _paymentLeeway;
+
+        emit PaymentScheduleCreated(_scheduleId);
+        return _scheduleId;
     }
 
-    function owner()
+    function owner(bytes32 _scheduleId)
         external
         view
         returns(address)
     {
-        return details.owner;
+        return details[_scheduleId].owner;
     }
 
-    function subscriptionAmmount()
+    function subscriptionAmmount(bytes32 _scheduleId)
         external
         view
         returns(uint)
     {
-        return details.subscriptionAmmount;
+        return details[_scheduleId].subscriptionAmmount;
     }
 
-    function destination()
+    function destination(bytes32 _scheduleId)
         external
         view
         returns(address)
     {
-        return details.destination;
+        return details[_scheduleId].destination;
     }
 
-    function latestPaymentId()
+    function latestPaymentId(bytes32 _scheduleId)
         external
         view
         returns(bytes32)
     {
-        return details.latestPaymentId;
+        return details[_scheduleId].latestPaymentId;
     }
 
-    function createNextPayment()
+    function createNextPayment(bytes32 _scheduleId)
         external
         payable
     {
-        require(isNextPaymentDue(), "PaymentSchedule must be due to create a payment");
-        require(payment.isExecuted(details.latestPaymentId), "Can only create a new payment if last payment has been made");
-        require(msg.value >= details.subscriptionAmmount, "Insufficient funds to fund payment");
+        require(isNextPaymentDue(_scheduleId), "PaymentSchedule must be due to create a payment");
+        require(payment.isExecuted(details[_scheduleId].latestPaymentId), "Can only create a new payment if last payment has been made");
+        require(msg.value >= details[_scheduleId].subscriptionAmmount, "Insufficient funds to fund payment");
 
-        details.latestPaymentId = payment.createPayment.value(details.subscriptionAmmount)
-            (details.destination,
-            details.subscriptionAmmount,
-            overdueDate());
+        details[_scheduleId].latestPaymentId = payment.createPayment.value(details[_scheduleId].subscriptionAmmount)
+            (details[_scheduleId].destination,
+            details[_scheduleId].subscriptionAmmount,
+            overdueDate(_scheduleId));
 
-        details.nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(details.nextPaymentDate, 1);
+        details[_scheduleId].nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(details[_scheduleId].nextPaymentDate, 1);
     }
 
-    function isOverDue()
+    function isOverDue(bytes32 _scheduleId)
         external
         view
         returns(bool)
     {
-        bool isSubscriptionOverdue = block.timestamp > overdueDate();
-        bool isLatestPaymentOverdue = payment.isOverdue(details.latestPaymentId);
+        bool isSubscriptionOverdue = block.timestamp > overdueDate(_scheduleId);
+        bool isLatestPaymentOverdue = payment.isOverdue(details[_scheduleId].latestPaymentId);
         return isSubscriptionOverdue || isLatestPaymentOverdue;
     }
 
-    function isNextPaymentDue()
+    function isNextPaymentDue(bytes32 _scheduleId)
         public
         view
         returns(bool)
     {
-        return block.timestamp > details.nextPaymentDate;
+        return block.timestamp > details[_scheduleId].nextPaymentDate;
     }
 
-    function overdueDate()
+    function overdueDate(bytes32 _scheduleId)
         private
         view
         returns(uint)
     {
-        return BokkyPooBahsDateTimeLibrary.addDays(details.nextPaymentDate, details.paymentLeeway);
+        return BokkyPooBahsDateTimeLibrary.addDays(details[_scheduleId].nextPaymentDate, details[_scheduleId].paymentLeeway);
     }
 }

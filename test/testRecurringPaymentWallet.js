@@ -21,8 +21,7 @@ contract("RecurringPaymentWallet", accounts => {
             today.getFullYear(),
             today.getMonth()+1,
             today.getDate()+1, 
-            serviceProvider,
-            paymentAddress);
+            serviceProvider);
     };
 
     let createDuePaymentSchedule = async (wallet, amount, serviceProvider) => {
@@ -32,8 +31,7 @@ contract("RecurringPaymentWallet", accounts => {
             yesterday.getFullYear(),
             yesterday.getMonth()+1,
             yesterday.getDate(), 
-            serviceProvider,
-            paymentAddress);
+            serviceProvider);
     };
 
     beforeEach(async() => {
@@ -41,6 +39,9 @@ contract("RecurringPaymentWallet", accounts => {
         snapshotId = snapShot['result'];
         paymentInst = await Payment.deployed();
         paymentAddress = paymentInst.address;
+        paymentSchedule = await PaymentSchedule.deployed();
+        paymentScheduleAddress = paymentSchedule.address;
+
     });
     
     afterEach(async() => {
@@ -48,7 +49,7 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should set constructor parameters correctly", async () => {
-        let wallet = await RecurringPaymentWallet.new();
+        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         let walletOwner = await wallet.owner();
 
         assert.equal(
@@ -59,7 +60,7 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should be able to fund the wallet", async () => {
-        let wallet = await RecurringPaymentWallet.new();
+        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         let depositAmount = 10000;
         
         await truffleAssert.reverts(
@@ -118,7 +119,7 @@ contract("RecurringPaymentWallet", accounts => {
     // });
 
     it("should only allow the owner of a wallet to withdraw funds", async () => {
-        let wallet = await RecurringPaymentWallet.new();
+        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         let depositAmount = 100000;
 
         await wallet.deposit({value: depositAmount, from: owner});
@@ -137,7 +138,7 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should not be able to withdraw more than you deposit", async () => {
-        let wallet = await RecurringPaymentWallet.new();
+        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         let depositAmount = 100000;
 
         await wallet.deposit({value: depositAmount, from: owner});
@@ -156,7 +157,7 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should be able to create a payment schedule", async () => {
-        let wallet = await RecurringPaymentWallet.new();
+        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         const serviceProvider = accounts[2];
 
         await createNotDuePaymentSchedule(wallet, 10000, serviceProvider);
@@ -167,9 +168,8 @@ contract("RecurringPaymentWallet", accounts => {
             1,
             "There should be one payment schedule");
 
-        let paymentScheduleAddress = await wallet.paymentSchedules(0);
-        let paymentSchedule = await PaymentSchedule.at(paymentScheduleAddress);
-        let owner = await paymentSchedule.owner();
+        let _id = await wallet.paymentSchedules(0);
+        let owner = await paymentSchedule.owner(_id);
 
         assert.equal(
             owner,
@@ -179,7 +179,7 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should only allow wallet owner to create a payment schedule", async () => {
-        let wallet = await RecurringPaymentWallet.new();
+        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         const serviceProvider = accounts[2];
 
         await truffleAssert.reverts(
@@ -189,15 +189,14 @@ contract("RecurringPaymentWallet", accounts => {
                 today.getFullYear(),
                 today.getMonth()+1,
                 today.getDate()+1, 
-                serviceProvider,
-                paymentAddress, {from : hacker}),
+                serviceProvider, {from : hacker}),
             "Sender not authorized."
         );
 
     });
 
     it("should generate and fund due transactions", async () => {
-        let wallet = await RecurringPaymentWallet.new();
+        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         const serviceProvider = accounts[2];
 
         //fund wallet

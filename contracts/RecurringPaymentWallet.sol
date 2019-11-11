@@ -4,8 +4,15 @@ import "contracts/PaymentSchedule.sol";
 
 
 contract RecurringPaymentWallet {
-    PaymentSchedule[] public paymentSchedules;
+    PaymentSchedule public paymentSchedule;
+    bytes32[] public paymentSchedules;
     address public owner = msg.sender;
+
+    constructor(PaymentSchedule _paymentSchedule)
+        public
+    {
+        paymentSchedule = _paymentSchedule;
+    }
 
     modifier onlyBy(address account)
     {
@@ -45,23 +52,22 @@ contract RecurringPaymentWallet {
         uint firstPaymentYear,
         uint firstPaymentMonth,
         uint firstPaymentDay,
-        address payable destination,
-        Payment payment)
+        address payable destination)
         external
         onlyBy(owner)
-        returns(PaymentSchedule)
+        returns(bytes32)
     {
-        PaymentSchedule paymentSchedule = new PaymentSchedule(
+        bytes32 _id = paymentSchedule.createPaymentSchedule(
             subscriptionAmmount,
             paymentLeeway,
             firstPaymentYear,
             firstPaymentMonth,
             firstPaymentDay,
             address(this),
-            destination,
-            payment);
-        paymentSchedules.push(paymentSchedule);
-        return paymentSchedule;
+            destination);
+
+        paymentSchedules.push(_id);
+        return _id;
     }
 
     function paymentScheduleCount()
@@ -78,17 +84,12 @@ contract RecurringPaymentWallet {
     {
         require((position < paymentSchedules.length) && (position >= 0), "Position out of range");
 
-        PaymentSchedule ps = paymentSchedules[position];
-        require(ps.owner() == address(this), "Can only fund payment schedules owned by this wallet");
+        bytes32 _scheduleId = paymentSchedules[position];
+        require(paymentSchedule.owner(_scheduleId) == address(this), "Can only fund payment schedules owned by this wallet");
 
         //if isDue create + fund payment
-        if (ps.isNextPaymentDue()) {
-            ps.createNextPayment.value(ps.subscriptionAmmount())();
+        if (paymentSchedule.isNextPaymentDue(_scheduleId)) {
+            paymentSchedule.createNextPayment.value(paymentSchedule.subscriptionAmmount(_scheduleId))(_scheduleId);
         }
-    }
-
-    function generateDueTransaction()
-        external
-    {
     }
 }
