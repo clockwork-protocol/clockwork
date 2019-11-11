@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/clockwork-protocol/clockwork/badge.svg?branch=master)](https://coveralls.io/github/clockwork-protocol/clockwork?branch=master)
+
 # Clockwork
 
 Clockwork is a decentralized protocol that enables recurring payments on Ethereum to give users the ability to manage repeat payments entirely on-chain. Thus, Clockwork enables the use of cryptocurrency for subscription, SaaS, and other repeat-payment business models that have not been possible before.
