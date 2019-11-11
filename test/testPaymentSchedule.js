@@ -82,13 +82,13 @@ contract("PaymentSchedule", accounts => {
         //capture the payment ID
         let id = event.id;
 
-        let paymentScheduleOwner = await paymentSchedule.owner(id);
+        let paymentScheduleOwner = await paymentSchedule.owner.call(id);
         assert.equal(
             paymentScheduleOwner, 
             owner, 
             "Owner should be set correctly");
 
-        let paymentScheduleDestination = await paymentSchedule.destination(id);
+        let paymentScheduleDestination = await paymentSchedule.destination.call(id);
         assert.equal(
             paymentScheduleDestination, 
             destination, 
@@ -159,7 +159,7 @@ contract("PaymentSchedule", accounts => {
         let result = await paymentSchedule.createNextPayment(id, {value: monthlyPayment});
 
         //get latest payment
-        let paymentID = await paymentSchedule.latestPaymentId(id);
+        let paymentID = await paymentSchedule.latestPaymentId.call(id);
         let isPaid = await paymentInst.isExecuted.call(paymentID);
 
         assert.equal(

@@ -162,14 +162,14 @@ contract("RecurringPaymentWallet", accounts => {
 
         await createNotDuePaymentSchedule(wallet, 10000, serviceProvider);
         
-        let count = await wallet.paymentScheduleCount();
+        let count = await wallet.paymentScheduleCount.call();
         assert.equal(
             count,
             1,
             "There should be one payment schedule");
 
-        let _id = await wallet.paymentSchedules(0);
-        let owner = await paymentSchedule.owner(_id);
+        let _id = await wallet.paymentSchedules.call(0);
+        let owner = await paymentSchedule.owner.call(_id);
 
         assert.equal(
             owner,
