@@ -12,7 +12,6 @@ contract("RecurringPaymentWallet", accounts => {
     const owner = accounts[0];
     const hacker = accounts[1];
     var paymentInst;
-    var paymentAddress;
 
     let createNotDuePaymentSchedule = async (wallet, amount, serviceProvider) => {
         return wallet.createPaymentSchedule(
@@ -40,7 +39,7 @@ contract("RecurringPaymentWallet", accounts => {
         paymentInst = await Payment.deployed();
         paymentAddress = paymentInst.address;
         paymentSchedule = await PaymentSchedule.deployed();
-        paymentScheduleAddress = paymentSchedule.address;
+        wallet = await RecurringPaymentWallet.deployed();
 
     });
     
@@ -49,7 +48,6 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should set constructor parameters correctly", async () => {
-        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         let walletOwner = await wallet.owner();
 
         assert.equal(
@@ -60,7 +58,6 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should be able to fund the wallet", async () => {
-        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         let depositAmount = 10000;
         
         await truffleAssert.reverts(
@@ -119,7 +116,6 @@ contract("RecurringPaymentWallet", accounts => {
     // });
 
     it("should only allow the owner of a wallet to withdraw funds", async () => {
-        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         let depositAmount = 100000;
 
         await wallet.deposit({value: depositAmount, from: owner});
@@ -138,7 +134,6 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should not be able to withdraw more than you deposit", async () => {
-        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         let depositAmount = 100000;
 
         await wallet.deposit({value: depositAmount, from: owner});
@@ -157,7 +152,6 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should be able to create a payment schedule", async () => {
-        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         const serviceProvider = accounts[2];
 
         await createNotDuePaymentSchedule(wallet, 10000, serviceProvider);
@@ -179,7 +173,6 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should only allow wallet owner to create a payment schedule", async () => {
-        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         const serviceProvider = accounts[2];
 
         await truffleAssert.reverts(
@@ -196,7 +189,6 @@ contract("RecurringPaymentWallet", accounts => {
     });
 
     it("should generate and fund due transactions", async () => {
-        let wallet = await RecurringPaymentWallet.new(paymentScheduleAddress);
         const serviceProvider = accounts[2];
 
         //fund wallet
