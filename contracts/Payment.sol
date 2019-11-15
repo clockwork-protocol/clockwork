@@ -1,5 +1,9 @@
 pragma solidity ^0.5.0;
 
+// todo
+// See if we can use eventeum to execute txn's
+// if we can get rid of index and only use events
+
 
 contract Payment {
 
@@ -68,6 +72,7 @@ contract Payment {
         return paymentStatus[_id].executed;
     }
 
+    //TODO add execute by id method
     function execute(uint _index)
         external
     {

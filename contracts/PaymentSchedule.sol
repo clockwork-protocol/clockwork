@@ -2,6 +2,9 @@ pragma solidity ^0.5.0;
 import "contracts/Payment.sol";
 import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 
+// Todo
+// test events and thier values
+
 
 contract PaymentSchedule {
 
@@ -15,7 +18,15 @@ contract PaymentSchedule {
         bytes32 latestPaymentId;
     }
 
-    event PaymentScheduleCreated(bytes32 id);
+    event PaymentScheduleCreated(
+        bytes32 id,
+        uint paymentLeeway,
+        address owner,
+        address destination,
+        uint subscriptionAmmount
+    );
+
+    event NextPaymentDateSet(bytes32 id, uint nextPaymentDate);
 
     mapping(bytes32 => PaymentScheduleDetails) public details;
     Payment private payment;
@@ -64,7 +75,19 @@ contract PaymentSchedule {
         details[_scheduleId].subscriptionAmmount = _subscriptionAmmount;
         details[_scheduleId].paymentLeeway = _paymentLeeway;
 
-        emit PaymentScheduleCreated(_scheduleId);
+        emit PaymentScheduleCreated(
+            _scheduleId,
+            _paymentLeeway,
+            _owner,
+            _destination,
+            _subscriptionAmmount
+        );
+
+        emit NextPaymentDateSet(
+            _scheduleId,
+            details[_scheduleId].nextPaymentDate
+        );
+
         return _scheduleId;
     }
 

@@ -47,16 +47,6 @@ contract("RecurringPaymentWallet", accounts => {
         await helper.revertToSnapShot(snapshotId);
     });
 
-    it("should set constructor parameters correctly", async () => {
-        let walletOwner = await wallet.owner();
-
-        assert.equal(
-            walletOwner, 
-            owner, 
-            "Wallet owner not set correctly"
-        );
-    });
-
     it("should be able to fund the wallet", async () => {
         let depositAmount = 10000;
         
@@ -115,7 +105,7 @@ contract("RecurringPaymentWallet", accounts => {
     //     );
     // });
 
-    it("should only allow the owner of a wallet to withdraw funds", async () => {
+    it("should only withdraw funds from sender's wallet", async () => {
         let depositAmount = 100000;
 
         await wallet.deposit({value: depositAmount, from: owner});
@@ -129,7 +119,7 @@ contract("RecurringPaymentWallet", accounts => {
 
         await truffleAssert.reverts(
             wallet.withdraw(depositAmount/2, {from : hacker}),
-            "Sender not authorized."
+            "Withdrawal request exceeds wallet balance."
         );
     });
 
@@ -147,7 +137,7 @@ contract("RecurringPaymentWallet", accounts => {
 
         await truffleAssert.reverts(
             wallet.withdraw(depositAmount*2),
-            "Withdrawal request exceeds balance"
+            "Withdrawal request exceeds wallet balance."
         );
     });
 
@@ -172,22 +162,6 @@ contract("RecurringPaymentWallet", accounts => {
 
     });
 
-    it("should only allow wallet owner to create a payment schedule", async () => {
-        const serviceProvider = accounts[2];
-
-        await truffleAssert.reverts(
-            wallet.createPaymentSchedule(
-                10000,
-                2,
-                today.getFullYear(),
-                today.getMonth()+1,
-                today.getDate()+1, 
-                serviceProvider, {from : hacker}),
-            "Sender not authorized."
-        );
-
-    });
-
     it("should generate and fund due transactions", async () => {
         const serviceProvider = accounts[2];
 
@@ -209,7 +183,7 @@ contract("RecurringPaymentWallet", accounts => {
             "There should be 4 payment schedules");
 
         //create + fund first payment
-        let tx = await wallet.createAndFundDuePaymentForPaymentSchedule(0);
+        let tx = await wallet.createAndFundDuePaymentForPaymentSchedule(owner, 0);
         let paymentCount = await paymentInst.paymentCount.call();
         assert.equal(
             paymentCount,
@@ -217,7 +191,7 @@ contract("RecurringPaymentWallet", accounts => {
             "There should be 0 payments");
 
         //create + fund 2nd payment
-        tx = await wallet.createAndFundDuePaymentForPaymentSchedule(1);
+        tx = await wallet.createAndFundDuePaymentForPaymentSchedule(owner, 1);
         paymentCount = await paymentInst.paymentCount.call();
         assert.equal(
             paymentCount,
@@ -238,7 +212,7 @@ contract("RecurringPaymentWallet", accounts => {
             "There should be 1 payments");
 
         //create + fund 4th payment
-        tx = await wallet.createAndFundDuePaymentForPaymentSchedule(3);
+        tx = await wallet.createAndFundDuePaymentForPaymentSchedule(owner, 3);
         paymentCount = await paymentInst.paymentCount.call();
         assert.equal(
             paymentCount,
@@ -253,11 +227,16 @@ contract("RecurringPaymentWallet", accounts => {
         
         //Test range asserts
         await truffleAssert.reverts(
-            wallet.createAndFundDuePaymentForPaymentSchedule(-1),
+            wallet.createAndFundDuePaymentForPaymentSchedule(owner, -1),
             "Position out of range"
         );
         await truffleAssert.reverts(
-            wallet.createAndFundDuePaymentForPaymentSchedule(4),
+            wallet.createAndFundDuePaymentForPaymentSchedule(owner, 4),
+            "Position out of range"
+        );
+
+        await truffleAssert.reverts(
+            wallet.createAndFundDuePaymentForPaymentSchedule(serviceProvider, 4),
             "Position out of range"
         );
     });
