@@ -138,8 +138,6 @@ contract RecurringPaymentWallet {
         require((_schedulePosition < _walletDetails.paymentSchedules.length) && (_schedulePosition >= 0), "Position out of range");
 
         bytes32 _scheduleId = _walletDetails.paymentSchedules[_schedulePosition];
-        //todo : do we need to do the below check?
-        //require(paymentSchedule.owner(_scheduleId) == _walletDetails.owner, "Can only fund payment schedules owned by this wallet");
 
         //if isDue create + fund payment
         if (paymentSchedule.isNextPaymentDue(_scheduleId)) {
