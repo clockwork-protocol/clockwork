@@ -3,7 +3,6 @@ import "contracts/Payment.sol";
 import "contracts/PaymentSchedule.sol";
 
 // todo::
-// test drain method
 // if not enough funds to fund payment emit event
 // when wallet is funded emit event + test
 // when withdrawn emit event + test

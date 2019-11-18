@@ -65,45 +65,67 @@ contract("RecurringPaymentWallet", accounts => {
         );
     });
 
-    //This fails intermittently, no idea why
-    // it("should be able to withdraw from wallet", async () => {
-    //     let wallet = await RecurringPaymentWallet.new();
-    //     let depositAmount = 10000000;
+    it("should be able to withdraw from wallet", async () => {
+        let depositAmount = 10000000;
 
-    //     await wallet.deposit({value: depositAmount, from: owner});
-    //     let balance = await wallet.getBalance();
+        await wallet.deposit({value: depositAmount, from: owner});
+        let balance = await wallet.getBalance();
 
-    //     assert.equal(
-    //         balance, 
-    //         depositAmount, 
-    //         "Wallet balance is incorrect"
-    //     );
+        assert.equal(
+            balance, 
+            depositAmount, 
+            "Wallet balance is incorrect"
+        );
 
-    //     let ownerInitialBalance = await web3.eth.getBalance(owner);
-    //     const txInfo = await wallet.withdraw(depositAmount/2);
+        let ownerInitialBalance = await web3.eth.getBalance(owner);
+        const txInfo = await wallet.withdraw(depositAmount/2);
 
-    //     // BALANCE AFTER TX needs to take gas cost and price into account
-    //     const balanceAfter = new BN(await web3.eth.getBalance(owner));
-    //     const tx = await web3.eth.getTransaction(txInfo.tx);
-    //     const gasPrice = new BN(tx.gasPrice);
-    //     const gasUsed = new BN(txInfo.receipt.gasUsed);
-    //     const gasCost = gasPrice.mul(gasUsed);
-    //     let ownerFinalBalance = balanceAfter.add(gasCost);
+        // This fails intermittently, find out why
+        // BALANCE AFTER TX needs to take gas cost and price into account
+        // const balanceAfter = new BN(await web3.eth.getBalance(owner));
+        // const tx = await web3.eth.getTransaction(txInfo.tx);
+        // const gasPrice = new BN(tx.gasPrice);
+        // const gasUsed = new BN(txInfo.receipt.gasUsed);
+        // const gasCost = gasPrice.mul(gasUsed);
+        // let ownerFinalBalance = balanceAfter.add(gasCost);
         
-    //     assert.equal(
-    //         ownerFinalBalance, 
-    //         ownerInitialBalance*1 + depositAmount/2, 
-    //         "Should have deposited the correct amount to the owner address"
-    //     );
+        // assert.equal(
+        //     ownerFinalBalance, 
+        //     ownerInitialBalance*1 + depositAmount/2, 
+        //     "Should have deposited the correct amount to the owner address"
+        // );
 
-    //     balance = await wallet.getBalance();
+        balance = await wallet.getBalance();
 
-    //     assert.equal(
-    //         balance, 
-    //         depositAmount/2, 
-    //         "Wallet balance is incorrect"
-    //     );
-    // });
+        assert.equal(
+            balance, 
+            depositAmount/2, 
+            "Wallet balance is incorrect"
+        );
+    });
+
+    it("should be able to drain all funds from wallet", async () => {
+        let depositAmount = 10000000;
+
+        await wallet.deposit({value: depositAmount, from: owner});
+        let balance = await wallet.getBalance();
+
+        assert.equal(
+            balance, 
+            depositAmount, 
+            "Wallet balance is incorrect"
+        );
+
+        await wallet.drain();
+
+        balance = await wallet.getBalance();
+
+        assert.equal(
+            balance, 
+            0, 
+            "Wallet balance is incorrect"
+        );
+    });
 
     it("should only withdraw funds from sender's wallet", async () => {
         let depositAmount = 100000;
