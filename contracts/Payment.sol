@@ -2,7 +2,6 @@ pragma solidity ^0.5.0;
 
 // todo
 // See if we can use eventeum to execute txn's
-// if we can get rid of index and only use events
 
 
 contract Payment {
@@ -12,48 +11,26 @@ contract Payment {
         uint overdueDate;
         uint paymentAmount;
         address payable destination;
-    }
-
-    struct PaymentStatus {
         bool executed;
         uint balance;
-        uint overdueDate;
     }
 
     event PaymentCreated(bytes32 id, uint overdueDate, uint paymentAmount, address payable destination);
     event PaymentExecuted(bytes32 id);
 
-    PaymentDetails[] public payments;
-    mapping(bytes32 => PaymentStatus) public paymentStatus;
+    mapping(bytes32 => PaymentDetails) public payments;
 
     constructor () public {
         bytes32 nullPaymentId;
-        paymentStatus[nullPaymentId].executed = true;
+        payments[nullPaymentId].executed = true;
     }
 
-    function paymentCount()
+    function paymentAmount(bytes32 _id)
         external
         view
         returns(uint)
     {
-        return payments.length;
-    }
-
-    function paymentAmount(uint _index)
-        external
-        view
-        returns(uint)
-    {
-        return payments[_index].paymentAmount;
-    }
-
-    function isOverdue(uint _index)
-        external
-        view
-        returns(bool)
-    {
-        PaymentDetails memory paymentDetails = payments[_index];
-        return block.timestamp > paymentDetails.overdueDate && !paymentStatus[paymentDetails.id].executed;
+        return payments[_id].paymentAmount;
     }
 
     function isOverdue(bytes32 _id)
@@ -61,7 +38,7 @@ contract Payment {
         view
         returns(bool)
     {
-        return block.timestamp > paymentStatus[_id].overdueDate && !paymentStatus[_id].executed;
+        return block.timestamp > payments[_id].overdueDate && !payments[_id].executed;
     }
 
     function isExecuted(bytes32 _id)
@@ -69,28 +46,24 @@ contract Payment {
         view
         returns(bool)
     {
-        return paymentStatus[_id].executed;
+        return payments[_id].executed;
     }
 
     //TODO add execute by id method
-    function execute(uint _index)
+    function execute(bytes32 _id)
         external
     {
-        require(_index < payments.length, "Index out of bounds");
-        //Get the payment at _index
-        PaymentDetails memory paymentDetails = payments[_index];
+        //Get the payment at _id
+        PaymentDetails storage paymentDetails = payments[_id];
 
         //check that we can execute this payment
-        require(paymentStatus[paymentDetails.id].executed == false, "Payment has already executed");
-        require(isFunded(_index), "Payment not funded");
-        require(paymentStatus[paymentDetails.id].balance >= paymentDetails.paymentAmount, "Insufficient funds to execute payment");
+        require(paymentDetails.executed == false, "Payment has already executed");
+        require(paymentDetails.balance >= 0, "Payment not funded");
+        require(paymentDetails.balance >= paymentDetails.paymentAmount, "Insufficient funds to execute payment");
 
         //set payment to executed and drain balance
-        paymentStatus[paymentDetails.id].executed = true;
-        paymentStatus[paymentDetails.id].balance = 0;
-
-        //remove the payment at _index
-        removePayment(_index);
+        paymentDetails.executed = true;
+        paymentDetails.balance = 0;
 
         //execute the transfer
         paymentDetails.destination.transfer(paymentDetails.paymentAmount);
@@ -119,19 +92,13 @@ contract Payment {
             )
         );
 
-        //Store payment details
-        PaymentDetails memory payment = PaymentDetails(
-            _paymentId,
-            _overdueDate,
-            _paymentAmount,
-            _destination);
-
-        payments.push(payment);
-
-        //set payment status
-        paymentStatus[_paymentId].executed = false;
-        paymentStatus[_paymentId].balance = msg.value;
-        paymentStatus[_paymentId].overdueDate = _overdueDate;
+        //set payment details
+        payments[_paymentId].id = _paymentId;
+        payments[_paymentId].paymentAmount = _paymentAmount;
+        payments[_paymentId].destination = _destination;
+        payments[_paymentId].executed = false;
+        payments[_paymentId].balance = msg.value;
+        payments[_paymentId].overdueDate = _overdueDate;
 
         emit PaymentCreated(
             _paymentId,
@@ -142,20 +109,11 @@ contract Payment {
         return _paymentId;
     }
 
-    function isFunded(uint _index)
+    function isFunded(bytes32 _id)
         public
         view
         returns(bool)
     {
-        return paymentStatus[payments[_index].id].balance >= 0;
-    }
-
-    function removePayment(uint _index)
-        internal
-    {
-        require(_index < payments.length, "Index out of bounds");
-        payments[_index] = payments[payments.length-1];
-        delete payments[payments.length-1];
-        payments.length--;
+        return payments[_id].balance >= 0;
     }
 }

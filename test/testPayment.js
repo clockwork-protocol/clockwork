@@ -45,7 +45,9 @@ contract("Payment", accounts => {
         );
 
         //execute the first payment
-        let result = await paymentInst.execute(0);
+        let result = await paymentInst.execute(paymentID);
+        truffleAssert.eventEmitted(result, "PaymentExecuted");
+        
         destinationBalance = await web3.eth.getBalance(destination);
 
         assert.equal(
@@ -53,7 +55,7 @@ contract("Payment", accounts => {
             (destinationInitialBalance*1) + (payment*1),
             "Destination should receive payment after payment executed"
         );
-
+        
         isExecuted = await paymentInst.isExecuted.call(paymentID);
         assert.equal(
             isExecuted, 
@@ -97,51 +99,6 @@ contract("Payment", accounts => {
                 0,
                 {value: fundAmount, from: source}),
             "Insufficient funds sent to fund payment"
-        );
-    });
-
-    it("should remove payments from the payment list after they have been paid", async () => {
-        let paymentInst = await Payment.deployed();
-
-        //create a new payment
-        let tx = await paymentInst.createPayment(
-            destination, 
-            payment, 
-            0,
-            {value: payment, from: source});
-
-        //check event was emitted
-        var event;
-        truffleAssert.eventEmitted(tx, 'PaymentCreated', (ev) => {
-            event = ev;
-            return true;
-        });
-        //capture the payment ID
-        let paymentID = event.id;
-
-        //check payment has not executed
-        let isExecuted = await paymentInst.isExecuted.call(paymentID);
-        assert.equal(
-            isExecuted, 
-            false, 
-            "A new payment should be marked as un-executed."
-        );
-
-        let count = await paymentInst.paymentCount();
-        assert.equal(
-            1, 
-            1, 
-            "There should be 1 unexecuted payment"
-        );
-
-        //execute the payment
-        let result = await paymentInst.execute(0);
-
-        count = await paymentInst.paymentCount();
-        assert.equal(
-            0, 
-            0, 
-            "There should be no unexecuted payments"
         );
     });
 

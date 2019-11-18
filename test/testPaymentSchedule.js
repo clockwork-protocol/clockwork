@@ -2,6 +2,7 @@ const PaymentSchedule = artifacts.require("PaymentSchedule");
 const Payment = artifacts.require("Payment");
 const helper = require("./helpers/truffleTestHelper");
 const truffleAssert = require('truffle-assertions');
+const {expectEvent} = require('@openzeppelin/test-helpers');
 
 contract("PaymentSchedule", accounts => {
     var today = new Date();
@@ -179,18 +180,21 @@ contract("PaymentSchedule", accounts => {
             yesterday.getDate(), 
             owner, 
             destination); //creating 2 payments so need 2 payments
-        
+
         //check event was emitted
         var event;
         truffleAssert.eventEmitted(tx, 'PaymentScheduleCreated', (ev) => {
             event = ev;
             return true;
         });
-        //capture the payment ID
+        //capture the payment schedule ID
         let id = event.id;
 
         //create a payment without paying it
-        await paymentSchedule.createNextPayment(id, {value: monthlyPayment});
+        let paymentTxn = await paymentSchedule.createNextPayment(id, {value: monthlyPayment});
+
+        //capture the payment id
+        let paymentEvent = await expectEvent.inTransaction(paymentTxn.tx, Payment, 'PaymentCreated');
 
         //try create a new payment, it should fail because nextDueDate has move on
         await truffleAssert.reverts(
@@ -208,7 +212,7 @@ contract("PaymentSchedule", accounts => {
         );
 
         //execute the payment
-        await paymentInst.execute(0);
+        await paymentInst.execute(paymentEvent.args.id);
 
         //create a new payment, it should succeed
         await paymentSchedule.createNextPayment(id, {value: monthlyPayment});
@@ -320,7 +324,9 @@ contract("PaymentSchedule", accounts => {
             "paymentSchedule should now be due");
 
         //create a new payment
-        let result = await paymentSchedule.createNextPayment(id, {value: monthlyPayment});
+        let paymentTxn = await paymentSchedule.createNextPayment(id, {value: monthlyPayment});
+        //capture the payment id
+        let paymentEvent = await expectEvent.inTransaction(paymentTxn.tx, Payment, 'PaymentCreated');
 
         //subscription should not be overdue
         let isOverdue = await paymentSchedule.isOverDue.call(id);
@@ -340,7 +346,7 @@ contract("PaymentSchedule", accounts => {
             "paymentSchedule should be overdue");
 
         //execute the payment
-        await paymentInst.execute(0);
+        await paymentInst.execute(paymentEvent.args.id);
 
         //subscription should not be overdue
         isOverdue = await paymentSchedule.isOverDue.call(id);

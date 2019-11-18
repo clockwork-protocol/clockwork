@@ -5,6 +5,7 @@ const Payment = artifacts.require("Payment");
 const truffleAssert = require('truffle-assertions');
 const helper = require("./helpers/truffleTestHelper");
 const BN = require('bn.js');
+const {expectEvent} = require('@openzeppelin/test-helpers');
 
 contract("RecurringPaymentWallet", accounts => {
     var today = new Date();
@@ -206,46 +207,32 @@ contract("RecurringPaymentWallet", accounts => {
 
         //create + fund first payment
         let tx = await wallet.createAndFundDuePaymentForPaymentSchedule(owner, 0);
-        let paymentCount = await paymentInst.paymentCount.call();
-        assert.equal(
-            paymentCount,
-            0,
-            "There should be 0 payments");
-
+        //todo : make sure payment was not created
+        
         //create + fund 2nd payment
         tx = await wallet.createAndFundDuePaymentForPaymentSchedule(owner, 1);
-        paymentCount = await paymentInst.paymentCount.call();
+        //make sure payment was created
+        let paymentEvent = await expectEvent.inTransaction(tx.tx, Payment, 'PaymentCreated');
+        //make sure it was for the correct amount
         assert.equal(
-            paymentCount,
-            1,
-            "There should be 1 payments");
-
-        let paymentAmount = await paymentInst.paymentAmount.call(0);
-        assert.equal(
-            paymentAmount,
+            paymentEvent.args.paymentAmount, 
             20000,
-            "First due payment should have a the correct payment amount");
+            "First due payment should have a the correct payment amount"
+        );
 
         //create + fund third payment
-        paymentCount = await paymentInst.paymentCount.call();
-        assert.equal(
-            paymentCount,
-            1,
-            "There should be 1 payments");
+        tx = await wallet.createAndFundDuePaymentForPaymentSchedule(owner, 2);
+        //todo : make sure payment was not created
 
         //create + fund 4th payment
         tx = await wallet.createAndFundDuePaymentForPaymentSchedule(owner, 3);
-        paymentCount = await paymentInst.paymentCount.call();
+        paymentEvent = await expectEvent.inTransaction(tx.tx, Payment, 'PaymentCreated');
+        //make sure it was for the correct amount
         assert.equal(
-            paymentCount,
-            2,
-            "There should be 2 payments");
-
-        paymentAmount = await paymentInst.paymentAmount.call(1);
-        assert.equal(
-            paymentAmount,
+            paymentEvent.args.paymentAmount, 
             40000,
-            "SEcond due payment should have a the correct payment amount");
+            "Second due payment should have a the correct payment amount"
+        );
         
         //Test range asserts
         await truffleAssert.reverts(
@@ -254,11 +241,6 @@ contract("RecurringPaymentWallet", accounts => {
         );
         await truffleAssert.reverts(
             wallet.createAndFundDuePaymentForPaymentSchedule(owner, 4),
-            "Position out of range"
-        );
-
-        await truffleAssert.reverts(
-            wallet.createAndFundDuePaymentForPaymentSchedule(serviceProvider, 4),
             "Position out of range"
         );
     });

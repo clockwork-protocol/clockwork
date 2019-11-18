@@ -3,7 +3,7 @@ import "contracts/Payment.sol";
 import "contracts/lib/BokkyPooBahsDateTimeLibrary.sol";
 
 // Todo
-// test events and thier values
+// test events and thier values PaymentScheduleCreated, NextPaymentDateSet
 
 
 contract PaymentSchedule {
