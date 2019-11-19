@@ -81,10 +81,11 @@ contract RecurringPaymentWallet {
         withdrawalAllowed(msg.sender, wallets[msg.sender].balance)
     {
         WalletDetails storage _walletDetails = wallets[msg.sender];
+        uint _transferAmount = _walletDetails.balance;
         _walletDetails.balance -= _walletDetails.balance;
         assert(_walletDetails.balance >= 0);
 
-        msg.sender.transfer(_walletDetails.balance);
+        msg.sender.transfer(_transferAmount);
     }
 
     function createPaymentSchedule(
