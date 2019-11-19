@@ -10,7 +10,7 @@
     },
     "scripts": {
         "stop": "sudo kill `sudo lsof -t -i:9545`",
-        "ganache": "ganache-cli -e 300 -p 9545 -m 'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat' --accounts 30 > /dev/null &",
+        "ganache": "ganache-cli -e 300 -p 9545 -m 'congress false detail border fade run purpose fantasy forum pink inside that' --accounts 30 > /dev/null &",
         "test:gas-reporter": "GAS_REPORTER=true npm run test",
         "test": "npm run ganache sleep 5 && npm run lint ./ && npm run solium && truffle test && npm run stop",
         "coverage": "./node_modules/.bin/solidity-coverage",
@@ -19,7 +19,8 @@
         "solium": "solium -d contracts/",
         "solium:fix": "solium -d contracts/ --fix",
         "build": "npm run clean:contracts && truffle compile",
-        "test-ci": "GAS_REPORTER=true npm run ganache sleep 5 && npm run lint ./ && npm run solium && truffle test"
+        "test-ci": "GAS_REPORTER=true npm run ganache sleep 5 && npm run lint ./ && npm run solium && truffle test",
+        "start-test-network": "npm run ganache sleep 5 && truffle migrate --network test"
     },
     "dependencies": {
         "bn.js": "^5.0.0",
