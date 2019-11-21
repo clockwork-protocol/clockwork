@@ -14,7 +14,7 @@ contract PaymentSchedule {
         uint paymentLeeway;
         address owner;
         address payable destination;
-        uint subscriptionAmmount;
+        uint subscriptionAmount;
         bytes32 latestPaymentId;
     }
 
@@ -23,7 +23,7 @@ contract PaymentSchedule {
         uint paymentLeeway,
         address owner,
         address destination,
-        uint subscriptionAmmount
+        uint subscriptionAmount
     );
 
     event NextPaymentDateSet(bytes32 id, uint nextPaymentDate);
@@ -72,7 +72,7 @@ contract PaymentSchedule {
             _firstPaymentDay);
         details[_scheduleId].owner = _owner;
         details[_scheduleId].destination = _destination;
-        details[_scheduleId].subscriptionAmmount = _subscriptionAmmount;
+        details[_scheduleId].subscriptionAmount = _subscriptionAmmount;
         details[_scheduleId].paymentLeeway = _paymentLeeway;
 
         emit PaymentScheduleCreated(
@@ -99,12 +99,12 @@ contract PaymentSchedule {
         return details[_scheduleId].owner;
     }
 
-    function subscriptionAmmount(bytes32 _scheduleId)
+    function subscriptionAmount(bytes32 _scheduleId)
         external
         view
         returns(uint)
     {
-        return details[_scheduleId].subscriptionAmmount;
+        return details[_scheduleId].subscriptionAmount;
     }
 
     function destination(bytes32 _scheduleId)
@@ -129,11 +129,11 @@ contract PaymentSchedule {
     {
         require(isNextPaymentDue(_scheduleId), "PaymentSchedule must be due to create a payment");
         require(payment.isExecuted(details[_scheduleId].latestPaymentId), "Can only create a new payment if last payment has been made");
-        require(msg.value >= details[_scheduleId].subscriptionAmmount, "Insufficient funds to fund payment");
+        require(msg.value >= details[_scheduleId].subscriptionAmount, "Insufficient funds to fund payment");
 
-        details[_scheduleId].latestPaymentId = payment.createPayment.value(details[_scheduleId].subscriptionAmmount)
+        details[_scheduleId].latestPaymentId = payment.createPayment.value(details[_scheduleId].subscriptionAmount)
             (details[_scheduleId].destination,
-            details[_scheduleId].subscriptionAmmount,
+            details[_scheduleId].subscriptionAmount,
             overdueDate(_scheduleId));
 
         details[_scheduleId].nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(details[_scheduleId].nextPaymentDate, 1);

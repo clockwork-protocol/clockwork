@@ -6,6 +6,7 @@ import "contracts/PaymentSchedule.sol";
 // if not enough funds to fund payment emit event
 // when wallet is funded emit event + test
 // when withdrawn emit event + test
+// test drain function, make sure funds go to correct wallet
 
 
 contract RecurringPaymentWallet {
@@ -89,7 +90,7 @@ contract RecurringPaymentWallet {
     }
 
     function createPaymentSchedule(
-        uint subscriptionAmmount,
+        uint subscriptionAmount,
         uint paymentLeeway,
         uint firstPaymentYear,
         uint firstPaymentMonth,
@@ -101,7 +102,7 @@ contract RecurringPaymentWallet {
         WalletDetails storage _walletDetails = wallets[msg.sender];
 
         bytes32 _id = paymentSchedule.createPaymentSchedule(
-            subscriptionAmmount,
+            subscriptionAmount,
             paymentLeeway,
             firstPaymentYear,
             firstPaymentMonth,
@@ -143,7 +144,7 @@ contract RecurringPaymentWallet {
         //if isDue create + fund payment
         if (paymentSchedule.isNextPaymentDue(_scheduleId)) {
             //todo if not enough funds to fund payment emit event
-            paymentSchedule.createNextPayment.value(paymentSchedule.subscriptionAmmount(_scheduleId))(_scheduleId);
+            paymentSchedule.createNextPayment.value(paymentSchedule.subscriptionAmount(_scheduleId))(_scheduleId);
         }
     }
 
