@@ -1,0 +1,3 @@
+[submodule "eventeum"]
+	path = eventeum
+	url = git@github.com:clockwork-protocol/eventeum.git
