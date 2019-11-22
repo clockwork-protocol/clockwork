@@ -59,8 +59,7 @@ contract RecurringPaymentWallet {
 
         //retrieve senders wallet
         WalletDetails storage _walletDetails = wallets[msg.sender];
-        setWalletOwner(_walletDetails, msg.sender);
-
+        _walletDetails.owner = msg.sender;
         _walletDetails.balance += msg.value;
 
         assert(msg.sender == _walletDetails.owner);
@@ -110,7 +109,7 @@ contract RecurringPaymentWallet {
             address(this),
             destination);
 
-        setWalletOwner(_walletDetails, msg.sender);
+        _walletDetails.owner = msg.sender;
 
         _walletDetails.paymentSchedules.push(_id);
         return _id;
@@ -145,14 +144,6 @@ contract RecurringPaymentWallet {
         if (paymentSchedule.isNextPaymentDue(_scheduleId)) {
             //todo if not enough funds to fund payment emit event
             paymentSchedule.createNextPayment.value(paymentSchedule.subscriptionAmount(_scheduleId))(_scheduleId);
-        }
-    }
-
-    function setWalletOwner(WalletDetails storage _walletDetails, address _sender)
-        internal
-    {
-        if (_walletDetails.owner == address(0)) {
-            _walletDetails.owner = _sender;
         }
     }
 }
