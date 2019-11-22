@@ -6,6 +6,8 @@ const RecurringPaymentWallet = require('../build/contracts/RecurringPaymentWalle
 
 const testNetwork = {
     recurringPaymentsWalletAddress : '0xb39CA142159DF2aE60857113c7De2d7FB8637dC7', 
+    paymentScheduleAddress : "0x4a936E7Ce91FD8A47bbe9aeBFabE15AA13A11232",
+    paymentAddress : "0xE56fF881317c1B3059957f0c967a115c4992860A",
     mnemonic : 'congress false detail border fade run purpose fantasy forum pink inside that',
     accounts : [
         '0xeBd52BE708F1ff0B3F2b4D2059b0Ec10457D74C4',
@@ -119,8 +121,8 @@ createRandomSubscription = async (account) => {
 
 async function run() {
     //Store blockchain state
-    let snapShot = await takeSnapshot();
-    let snapshotId = snapShot['result'];
+    //let snapShot = await takeSnapshot();
+    //let snapshotId = snapShot['result'];
     let amount;
 
     result = await printSummary('Initial state');
@@ -138,7 +140,7 @@ async function run() {
     } 
     finally {
         //restore blockchain state
-        await revertToSnapShot(snapshotId);
+       // await revertToSnapShot(snapshotId);
     }
     
 }
