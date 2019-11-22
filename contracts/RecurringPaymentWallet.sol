@@ -19,6 +19,8 @@ contract RecurringPaymentWallet {
     PaymentSchedule private paymentSchedule;
     mapping(address => WalletDetails) public wallets;
 
+    event Deposit(address owner, uint amount);
+
     constructor(PaymentSchedule _paymentSchedule)
         public
     {
@@ -62,6 +64,7 @@ contract RecurringPaymentWallet {
         _walletDetails.owner = msg.sender;
         _walletDetails.balance += msg.value;
 
+        emit Deposit(msg.sender, msg.value);
         assert(msg.sender == _walletDetails.owner);
     }
 
