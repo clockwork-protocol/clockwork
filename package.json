@@ -20,7 +20,9 @@
         "solium:fix": "solium -d contracts/ --fix",
         "build": "npm run clean:contracts && truffle compile",
         "test-ci": "GAS_REPORTER=true npm run ganache sleep 5 && npm run lint ./ && npm run solium && truffle test",
-        "start-test-network": "npm run ganache sleep 5 && truffle migrate --network test"
+        "start-test-network": "docker-compose -f eventeum/server/docker-compose.yml up",
+        "migrate-test-network": "truffle migrate --network test", 
+        "stop-test-network": "docker stop server_eventeum_1 && docker stop server_ganache-cli_1 && docker stop server_kafka_1 && docker stop server_zookeeper_1 && docker stop server_mongodb_1 "
     },
     "dependencies": {
         "bn.js": "^5.0.0",
