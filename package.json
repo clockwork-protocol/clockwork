@@ -21,7 +21,7 @@
         "build": "npm run clean:contracts && truffle compile",
         "test-ci": "GAS_REPORTER=true npm run ganache sleep 5 && npm run lint ./ && npm run solium && truffle test",
         "start-test-network": "docker-compose -f eventeum/server/docker-compose.yml up",
-        "migrate-test-network": "truffle migrate --network test", 
+        "migrate-test-network": "truffle migrate --network test",
         "stop-test-network": "docker stop server_eventeum_1 && docker stop server_ganache-cli_1 && docker stop server_kafka_1 && docker stop server_zookeeper_1 && docker stop server_mongodb_1 "
     },
     "dependencies": {
@@ -29,7 +29,7 @@
         "dotenv": "^8.2.0",
         "ethereumjs-wallet": "^0.6.3",
         "openzeppelin-solidity": "^2.1.2",
-        "truffle": "^5.1.0",
+        "truffle": "^5.1.1",
         "truffle-hdwallet-provider": "^1.0.2",
         "web3": "^1.2.4",
         "webpack": "^4.29.0"
@@ -47,7 +47,7 @@
         "chai": "4.2.0",
         "chai-as-promised": "7.1.1",
         "chai-bignumber": "3.0.0",
-        "coveralls": "^3.0.7",
+        "coveralls": "^3.0.8",
         "eslint": "^6.6.0",
         "eslint-config-prettier": "^6.6.0",
         "eslint-config-standard": "^14.1.0",
