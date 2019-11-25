@@ -94,12 +94,18 @@ randomAmountInWei = (maxEth) => {
     return web3.utils.toWei(((Math.random() * maxEth) + 1).toString())
 }
 
+function randomDate(start, end) {
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+
 createRandomSubscription = async (account) => {
     const today = new Date();
-    const randomDayInNextMonth = new Date(today + Math.floor(Math.random() * 30) + 1);
+    const nextMonth = new Date();
+    nextMonth.setDate(today.getDate() + 30);
+    const randomDayInNextMonth = randomDate(today, nextMonth);
     const destination = destinationAccounts[Math.floor(Math.random() * 5)];
     try {
-        console.log(`Creating payment schedule...`);
+        console.log(`Creating payment schedule for ${randomDayInNextMonth} ...`);
 
         await recurringPaymentWallet.methods.createPaymentSchedule(
                 randomAmountInWei(1),
