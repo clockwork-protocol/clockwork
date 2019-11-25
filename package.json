@@ -23,10 +23,11 @@
         "testnet:up": "docker-compose -f eventeum/server/docker-compose.yml up",
         "testnet:migrate": "truffle migrate --network test",
         "testnet:init": "node ./scripts/initTestNetwork.js",
-        "testnet:start" : "npm run testnet:up & sleep 30 && npm run testnet:migrate sleep 5 && npm run testnet:init",
+        "testnet:start": "npm run testnet:up & sleep 30 && npm run testnet:migrate sleep 5 && npm run testnet:init",
         "testnet:stop": "docker stop server_eventeum_1 && docker stop server_ganache-cli_1 && docker stop server_kafka_1 && docker stop server_zookeeper_1 && docker stop server_mongodb_1 ",
         "eventeum:subscribe": "./eventeum/subscribers/registerScripts.sh",
         "eventeum:listen": "node eventeum/subscribers/paymentScheduleSubscribers.js",
+        "eventeum:listen-dev": "nodemon eventeum/subscribers/paymentScheduleSubscribers.js",
         "eventeum:attach": "npm run eventeum:subscribe sleep 1 && npm run eventeum:listen"
     },
     "dependencies": {
@@ -68,6 +69,7 @@
         "ganache-cli": "^6.2.5",
         "mocha-junit-reporter": "^1.18.0",
         "mocha-multi-reporters": "^1.1.7",
+        "nodemon": "^2.0.1",
         "prettier": "^1.19.1",
         "prettier-plugin-solidity-refactor": "^1.0.0-alpha.14",
         "solidity-coverage": "0.6.7",
