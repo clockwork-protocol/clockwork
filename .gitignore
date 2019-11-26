@@ -33,3 +33,6 @@ scTopics
 scDebugLog
 coverage.json
 coverage/
+
+#mac
+.DS_Store
