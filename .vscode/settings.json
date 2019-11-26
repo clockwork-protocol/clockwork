@@ -5,7 +5,9 @@
         "eventeum",
         "ganache",
         "hdwallet",
+        "metabase",
         "openzeppelin",
+        "postgres",
         "solc",
         "solium",
         "testnet"
