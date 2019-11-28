@@ -28,7 +28,7 @@
         "testnet:rm": "docker rm server_eventeum_1 && docker rm server_ganache-cli_1 && docker rm server_kafka_1 && docker rm server_zookeeper_1 && docker rm server_mongodb_1",
         "testnet:down" : "npm run testnet:stop && sleep 5 && npm run testnet:rm",
         "eventeum:subscribe": "./eventeum/subscribers/registerScripts.sh",
-        "eventeum:listen": "node eventeum/subscribers/paymentScheduleSubscribers.js",
+        "eventeum:listen": "node eventeum/subscribers/subscribe.js",
         "eventeum:attach": "npm run eventeum:listen"
     },
     "dependencies": {
