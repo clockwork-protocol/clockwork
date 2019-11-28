@@ -1,3 +1,7 @@
+const Web3 = require('web3');
+const rpcURL = 'http://localhost:9545';
+const web3 = new Web3(rpcURL);
+
 daysToSeconds = (days) => {
     return days * 24 * 60 * 60;
 }
