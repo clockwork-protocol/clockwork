@@ -109,7 +109,7 @@ contract RecurringPaymentWallet {
             firstPaymentYear,
             firstPaymentMonth,
             firstPaymentDay,
-            address(this),
+            msg.sender,
             destination);
 
         _walletDetails.owner = msg.sender;

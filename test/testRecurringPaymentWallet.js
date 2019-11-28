@@ -180,8 +180,8 @@ contract("RecurringPaymentWallet", accounts => {
 
         assert.equal(
             owner,
-            wallet.address,
-            "Payment schedule owner should be the payment schedule that created it");
+            accounts[0],
+            "Payment schedule owner should be the user that created it");
 
     });
 
