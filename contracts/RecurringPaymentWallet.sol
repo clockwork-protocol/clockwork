@@ -134,19 +134,21 @@ contract RecurringPaymentWallet {
         return wallets[msg.sender].paymentSchedules[_index];
     }
 
-    function createAndFundDuePaymentForPaymentSchedule(address _owner, uint _schedulePosition)
+    function createAndFundDuePaymentForPaymentSchedule(bytes32 _scheduleId)
         external
         returns(bool)
     {
-        WalletDetails storage _walletDetails = wallets[_owner];
-        require((_schedulePosition < _walletDetails.paymentSchedules.length) && (_schedulePosition >= 0), "Position out of range");
-
-        bytes32 _scheduleId = _walletDetails.paymentSchedules[_schedulePosition];
-
         //if isDue create + fund payment
         if (paymentSchedule.isNextPaymentDue(_scheduleId)) {
-            //todo if not enough funds to fund payment emit event
-            paymentSchedule.createNextPayment.value(paymentSchedule.subscriptionAmount(_scheduleId))(_scheduleId);
+            address _owner = paymentSchedule.owner(_scheduleId);
+            uint _subscriptionAmount = paymentSchedule.subscriptionAmount(_scheduleId);
+            WalletDetails storage _walletDetails = wallets[_owner];
+
+            require(_subscriptionAmount <= _walletDetails.balance, "Owner has too little balance to fund payment");
+            _walletDetails.balance -= _subscriptionAmount;
+
+            paymentSchedule.createNextPayment.value(_subscriptionAmount)(_scheduleId);
+            assert(_walletDetails.balance >= 0);
         }
     }
 }
