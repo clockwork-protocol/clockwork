@@ -22,7 +22,7 @@
         "test-ci": "GAS_REPORTER=true npm run ganache sleep 5 && npm run lint ./ && npm run solium && truffle test",
         "testnet:compose": "docker-compose -f eventeum/server/docker-compose.yml up",
         "testnet:migrate": "truffle migrate --network test",
-        "testnet:init": "npm run eventeum:subscribe && sleep 2 && node ./scripts/initTestNetwork.js",
+        "testnet:init": "npm run eventeum:subscribe && sleep 2 && node ./eventeum/test-network/init.js",
         "testnet:up": "npm run testnet:compose & sleep 30 && npm run testnet:migrate && sleep 15 && npm run testnet:init ",
         "testnet:stop": "docker stop server_eventeum_1 && docker stop server_ganache-cli_1 && docker stop server_kafka_1 && docker stop server_zookeeper_1 && docker stop server_mongodb_1 && docker stop server_metabase-app_1 && docker stop server_postgres-db_1",
         "testnet:rm": "docker rm server_eventeum_1 && docker rm server_ganache-cli_1 && docker rm server_kafka_1 && docker rm server_zookeeper_1 && docker rm server_mongodb_1",
