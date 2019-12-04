@@ -20,6 +20,7 @@ contract RecurringPaymentWallet {
     mapping(address => WalletDetails) public wallets;
 
     event Deposit(address owner, uint amount);
+    event Withdraw(address owner, uint amount);
 
     constructor(PaymentSchedule _paymentSchedule)
         public
@@ -76,6 +77,7 @@ contract RecurringPaymentWallet {
         _walletDetails.balance -= amount;
         assert(_walletDetails.balance >= 0);
 
+        emit Withdraw(msg.sender, amount);
         msg.sender.transfer(amount);
     }
 
@@ -138,17 +140,17 @@ contract RecurringPaymentWallet {
         external
         returns(bool)
     {
-        //if isDue create + fund payment
-        if (paymentSchedule.isNextPaymentDue(_scheduleId)) {
-            address _owner = paymentSchedule.owner(_scheduleId);
-            uint _subscriptionAmount = paymentSchedule.subscriptionAmount(_scheduleId);
-            WalletDetails storage _walletDetails = wallets[_owner];
+        require(paymentSchedule.isNextPaymentDue(_scheduleId), "Payment schedule must be due");
 
-            require(_subscriptionAmount <= _walletDetails.balance, "Owner has too little balance to fund payment");
-            _walletDetails.balance -= _subscriptionAmount;
+        address _owner = paymentSchedule.owner(_scheduleId);
+        uint _subscriptionAmount = paymentSchedule.subscriptionAmount(_scheduleId);
+        WalletDetails storage _walletDetails = wallets[_owner];
 
-            paymentSchedule.createNextPayment.value(_subscriptionAmount)(_scheduleId);
-            assert(_walletDetails.balance >= 0);
-        }
+        require(_subscriptionAmount <= _walletDetails.balance, "Owner has too little balance to fund payment");
+        _walletDetails.balance -= _subscriptionAmount;
+
+        paymentSchedule.createNextPayment.value(_subscriptionAmount)(_scheduleId);
+        assert(_walletDetails.balance >= 0);
+
     }
 }

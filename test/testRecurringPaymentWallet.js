@@ -211,8 +211,9 @@ contract("RecurringPaymentWallet", accounts => {
             "There should be 4 payment schedules");
 
         //create + fund first payment
-        let tx = await wallet.createAndFundDuePaymentForPaymentSchedule(schedule1);
-        //todo : make sure payment was not created
+        await truffleAssert.reverts(
+            wallet.createAndFundDuePaymentForPaymentSchedule(schedule1),
+            "Payment schedule must be due");
         
         //create + fund 2nd payment
         tx = await wallet.createAndFundDuePaymentForPaymentSchedule(schedule2);
@@ -226,8 +227,9 @@ contract("RecurringPaymentWallet", accounts => {
         );
 
         //create + fund third payment
-        tx = await wallet.createAndFundDuePaymentForPaymentSchedule(schedule3);
-        //todo : make sure payment was not created
+        await truffleAssert.reverts(
+            wallet.createAndFundDuePaymentForPaymentSchedule(schedule3),
+            "Payment schedule must be due");
 
         //create + fund 4th payment
         tx = await wallet.createAndFundDuePaymentForPaymentSchedule(schedule4);
@@ -240,7 +242,7 @@ contract("RecurringPaymentWallet", accounts => {
         );
     });
 
-    it("should generate and fund due transactions", async () => {
+    it("should not generate and fund due transactions if owner has no funds", async () => {
         const serviceProvider = accounts[2];
 
         //fund wallet
