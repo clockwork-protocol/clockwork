@@ -137,6 +137,10 @@ contract PaymentSchedule {
             overdueDate(_scheduleId));
 
         details[_scheduleId].nextPaymentDate = BokkyPooBahsDateTimeLibrary.addMonths(details[_scheduleId].nextPaymentDate, 1);
+        emit NextPaymentDateSet(
+            _scheduleId,
+            details[_scheduleId].nextPaymentDate
+        );
     }
 
     function isOverDue(bytes32 _scheduleId)
