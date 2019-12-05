@@ -15,8 +15,8 @@ contract Payment {
         uint balance;
     }
 
-    event PaymentCreated(bytes32 id, uint overdueDate, uint paymentAmount, address payable destination);
-    event PaymentExecuted(bytes32 id);
+    event PaymentCreated(bytes32 id, uint overdueDate, uint paymentAmount, address payable destination, uint timestamp);
+    event PaymentExecuted(bytes32 id, uint timestamp);
 
     mapping(bytes32 => PaymentDetails) public payments;
 
@@ -68,7 +68,7 @@ contract Payment {
         //execute the transfer
         paymentDetails.destination.transfer(paymentDetails.paymentAmount);
 
-        emit PaymentExecuted(paymentDetails.id);
+        emit PaymentExecuted(paymentDetails.id, block.timestamp);
     }
 
     function createPayment(address payable _destination, uint _paymentAmount, uint _overdueDate)
@@ -104,7 +104,8 @@ contract Payment {
             _paymentId,
             _overdueDate,
             _paymentAmount,
-            _destination);
+            _destination,
+            block.timestamp);
 
         return _paymentId;
     }
